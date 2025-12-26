@@ -1,3 +1,4 @@
+import type { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 const splitter = new RecursiveCharacterTextSplitter({ 
@@ -8,4 +9,9 @@ const splitter = new RecursiveCharacterTextSplitter({
 export const splitText = async (text: string) => {
     const texts = await splitter.splitText(text);
     return texts;
-}
+};
+
+export const splitDocument = async (document : Document[])=>{
+    const chunks = await splitter.splitDocuments(document)
+    return chunks
+};

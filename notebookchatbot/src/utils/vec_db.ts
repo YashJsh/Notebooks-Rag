@@ -8,11 +8,16 @@ const embeddings = new OpenAIEmbeddings({
 });
 
 export async function vec(data : Document[]){
+  try {
     const vectorStore = await QdrantVectorStore.fromDocuments(data, embeddings, {
-        url: process.env.QDRANT_URL,
-        collectionName: "user-rag",
+      url: process.env.QDRANT_URL,
+      collectionName: "user-rag",
     });
     console.log("Indexing of documents done");
+    return true;
+  } catch (error) {
+    console.warn("Error in creating storing and creating vector embeddings");
+  }
 };
 
  
