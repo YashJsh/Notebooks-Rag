@@ -4,7 +4,7 @@ import { OpenAIEmbeddings } from "@langchain/openai";
 import type { Document } from "@langchain/core/documents";
 
 const embeddings = new OpenAIEmbeddings({
-  model: "text-embedding-3-",
+  model: "text-embedding-3-small",
 });
 
 export async function vec(data : Document[]){
@@ -12,7 +12,6 @@ export async function vec(data : Document[]){
         url: process.env.QDRANT_URL,
         collectionName: "user-rag",
     });
-
     console.log("Indexing of documents done");
 };
 

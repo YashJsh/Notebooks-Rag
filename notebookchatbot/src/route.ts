@@ -1,5 +1,4 @@
-import { Hono, type Context, type HonoRequest } from "hono";
-import { inputSchema } from "./validation";
+import { Hono, type Context } from "hono";
 import { vec } from "./vec_db";
 import { splitText } from "./text_splitters";
 import { ZodError } from "zod/v3";
@@ -12,9 +11,9 @@ dataRoute.post("/data", async (c: Context) => {
   try {
     const body = await c.req.json();
     console.log(body);
-    const parsedBody = inputSchema.parse(body);
+    const parsedBody = z.string().parse(body);
 
-    const split = await splitText(parsedBody.data);
+    const split = await splitText(parsedBody);
 
     const document = split.map((text) => ({
       pageContent: text,
@@ -23,10 +22,11 @@ dataRoute.post("/data", async (c: Context) => {
         source: "text"
       }
     }));
+    console.log("Document is :",document);
 
-    c.executionCtx.waitUntil(vec(document));
     await vec(document);
 
+    c.status(201);
     return c.json({
       "success": true
     })
@@ -38,6 +38,9 @@ dataRoute.post("/data", async (c: Context) => {
       );
     }
     console.log(error);
+    return c.json({
+      error : error
+    })
   }
 });
 
@@ -50,7 +53,9 @@ dataRoute.post("/chat", async (c: Context) => {
       "success": "true",
       "data": {
         "role" : "assistant",
-        "content" : response
+        "content" : response!.airesponse.answer,
+        "id" : response!.id,
+        "meta" : response!.airesponse
       }
     })
   } catch (error) {
