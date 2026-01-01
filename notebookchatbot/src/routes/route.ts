@@ -1,24 +1,53 @@
 import { Hono, type Context } from "hono";
-
-
 import { ZodError } from "zod/v3";
 import * as z from "zod";
-import { splitDocument, splitText } from "../utils/text_splitters";
+import { splitText } from "../utils/text_splitters";
 import { vec } from "../utils/vec_db";
 import { chat } from "../chat";
 import path from "path";
 import fs from "fs/promises"
 import { loadPDF } from "../utils/pdf_loader";
 import { websiteLoader } from "../utils/websiteloader";
-
+import { EnhanceQuery } from "../utils/enhanceQuery";
+import { client } from "../lib/prisma";
 
 const dataRoute = new Hono();
 
 dataRoute.post("/upload/data", async (c: Context) => {
   try {
+    const userId = ""
     const body = await c.req.json();
+    const id = await c.req.param("id");
     console.log(body);
     const parsedBody = z.string().parse(body);
+
+    const response = await client.document.findFirst({
+      where : {
+        notebookId : id
+      }
+    });
+
+    let doc;
+
+    if (!response){
+      doc = await client.document.create({
+        data : {
+          notebookId : id,
+          name : "default",
+          userId : userId
+        }
+      });
+    };
+
+    const sourceFile = await client.sourceFile.create({
+      data : {
+        filename : "pasted text",
+        fileType : "text",
+        source : "paste",
+        documentId : doc.id,
+        userId : userId,
+      }
+    });
 
     const split = await splitText(parsedBody);
 
@@ -30,8 +59,10 @@ dataRoute.post("/upload/data", async (c: Context) => {
       }
     }));
     console.log("Document is :", document);
+    
+    const collectionName : string = response?.notebookId + doc.name;
 
-    await vec(document);
+    await vec(document, collectionName);
 
     c.status(201);
     return c.json({
@@ -55,7 +86,8 @@ dataRoute.post("/chat", async (c: Context) => {
   try {
     const query = await c.req.json();
     const data = z.string().parse(query);
-    const response = await chat(data);
+    const enhanceQuery = await EnhanceQuery(data);
+    const response = await chat(enhanceQuery as string);
     return c.json({
       "success": "true",
       "data": {
@@ -94,7 +126,8 @@ dataRoute.post("/upload/pdf", async (c: Context) => {
 
     await fs.writeFile(temp_file, buffer);
     const docs = await loadPDF(temp_file);
-    await vec(docs);
+    const collection_name = "";
+    await vec(docs, collection_name);
     await fs.unlink(temp_file);
     return c.json({
       "success" : true
@@ -104,7 +137,7 @@ dataRoute.post("/upload/pdf", async (c: Context) => {
     return c.json({
       succss : "false"
     })
-  }
+  };
 });
 
 dataRoute.post("/upload/website", async (c: Context) => {
@@ -114,7 +147,8 @@ dataRoute.post("/upload/website", async (c: Context) => {
     const website = z.url().parse(body);
     console.log("Website is : ",website);
     const content = await websiteLoader(website);
-    const vector = await vec(content);
+    const collection_name = "";
+    const vector = await vec(content, collection_name);
     if (!vector){
       return c.json({
         "success" : false

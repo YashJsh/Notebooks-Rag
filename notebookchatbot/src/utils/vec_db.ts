@@ -7,11 +7,11 @@ const embeddings = new OpenAIEmbeddings({
   model: "text-embedding-3-small",
 });
 
-export async function vec(data : Document[]){
+export async function vec(data : Document[], collection_name : string){
   try {
     const vectorStore = await QdrantVectorStore.fromDocuments(data, embeddings, {
       url: process.env.QDRANT_URL,
-      collectionName: "user-rag",
+      collectionName: collection_name,
     });
     console.log("Indexing of documents done");
     return true;
