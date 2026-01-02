@@ -5,7 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -23,23 +24,23 @@ model User {
 }
 
 model Notebook {
-  id        String   @id @default(uuid())
+  id        String     @id @default(uuid())
   name      String
-  createdAt DateTime @default(now())
   userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   documents Document[]
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
 }
 
 model Document {
-  id         String   @id @default(uuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  notebookId String
-  notebook   Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
-  createdAt  DateTime @default(now())
-  files      SourceFile[]
+  id         String      @id @default(uuid())
   name       String
+  notebookId String
+  userId     String
+  notebook   Notebook    @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  files      SourceFile[]
+  createdAt  DateTime    @default(now())
 }
 
 model SourceFile {

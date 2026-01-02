@@ -44,11 +44,11 @@ dataRoute.post("/upload/data", async (c: Context) => {
         filename : "pasted text",
         fileType : "text",
         source : "paste",
-        documentId : doc.id,
+        documentId : doc!.id,
         userId : userId,
       }
     });
-
+    
     const split = await splitText(parsedBody);
 
     const document = split.map((text) => ({
@@ -60,7 +60,7 @@ dataRoute.post("/upload/data", async (c: Context) => {
     }));
     console.log("Document is :", document);
     
-    const collectionName : string = response?.notebookId + doc.name;
+    const collectionName : string = response?.notebookId + doc!.name;
 
     await vec(document, collectionName);
 
@@ -68,7 +68,8 @@ dataRoute.post("/upload/data", async (c: Context) => {
     return c.json({
       "success": true
     })
-  } catch (error) {
+    }
+   catch (error) {
     if (error instanceof ZodError) {
       return c.json(
         { error: error.flatten() },
