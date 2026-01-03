@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Public_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider"
+import { Providers } from "@/providers/provider";
 
 const publicSans = Public_Sans({subsets:['latin'],variable:'--font-sans'});
 
@@ -31,6 +32,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Providers>
+
+    
         <Toaster/>
         <ThemeProvider
             attribute="class"
@@ -40,6 +44,7 @@ export default function RootLayout({
           >
         {children}
         </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );
