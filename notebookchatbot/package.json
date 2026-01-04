@@ -4,7 +4,7 @@
     "@prisma/client": "^7.2.0"
   },
   "name": "notebookchatbot",
-  "module": "index.ts",
+  "module": "src/index.ts",
   "type": "module",
   "private": true,
   "devDependencies": {

@@ -6,6 +6,7 @@ import { vec } from "../utils/vec_db";
 import { loadPDF } from "../utils/pdf_loader";
 import path from "path";
 import fs from "fs/promises"
+import { websiteLoader } from "../utils/websiteloader";
 
 
 export const textUpload = async (c: Context) => {
@@ -142,4 +143,57 @@ export const pdfUpload = async (c: Context) => {
     };
 }
 
+export const webSiteUpload = async (c : Context)=>{
+    try {
+        const userId = c.get("id");
+        const id = c.req.param("id");
+        const body = await c.req.json();
+        const website = z.url().parse(body);
+        console.log("Website is : ",website);
+        const response = await client.document.findFirst({
+            where: {
+                notebookId: id,
+                userId: userId
+            },
+            include: {
+                notebook: true
+            }
+        });
+        const doc =
+        response ??
+        (await client.document.create({
+            data: {
+                notebookId: id,
+                name: "default",
+                userId,
+            },
+            include : {
+                notebook : true
+            }
+        }));
+
+        const content = await websiteLoader(website);
+        const collection_name = doc.notebook.name;
+        const vector = await vec(content, collection_name);
+        if (!vector){
+          return c.json({
+            "success" : false
+          }, 500);
+        };
+        return c.json({
+          "success": true,
+          "data": "Created Successfully"
+        }, 201);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          return c.json(
+            { error: error.flatten() },
+            500
+          );
+        }
+        return c.json({
+          succss : "false"
+        })
+      }
+}
 

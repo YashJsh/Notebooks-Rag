@@ -1,7 +1,8 @@
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { QdrantVectorStore } from "@langchain/qdrant";
 import OpenAI from "openai";
-import { llmPrompt } from "./utils/prompt";
+import { llmPrompt } from "../constants";
+
 
 const embeddings = new OpenAIEmbeddings({
   model: "text-embedding-3-small"
