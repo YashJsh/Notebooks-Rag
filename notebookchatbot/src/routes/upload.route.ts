@@ -4,10 +4,26 @@ import { authMiddleware } from "../middleware/auth.middleware";
 
 const dataRoute = new Hono();
 
-//Here id is of notebook Id
-dataRoute.post("/upload/:id/text", authMiddleware, textUpload);
-dataRoute.post("/upload/pdf", authMiddleware, pdfUpload);
-dataRoute.post("/upload/website", authMiddleware, webSiteUpload);
+/**
+ * @route POST /api/v1/upload/:id/text
+ * @description Upload text data to a specific notebook
+ * @access Private
+ */
+dataRoute.post("/:id/text", textUpload);
+
+/**
+ * @route POST /api/v1/upload/pdf
+ * @description Upload pdf data to a specific notebook
+ * @access Private
+ */
+dataRoute.post("/pdf", pdfUpload);
+
+/**
+ * @route POST /api/v1/upload/website
+ * @description Uploads website data to the document inside notebook
+ * @access Private
+ */
+dataRoute.post("/website", webSiteUpload);
 
 export default dataRoute;
 

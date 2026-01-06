@@ -7,6 +7,8 @@ import { loadPDF } from "../utils/pdf_loader";
 import path from "path";
 import fs from "fs/promises"
 import { websiteLoader } from "../utils/websiteloader";
+import { APIError } from "../utils/apiError";
+import { APIResponse } from "../utils/apiResponse";
 
 
 export const textUpload = async (c: Context) => {
@@ -65,21 +67,16 @@ export const textUpload = async (c: Context) => {
 
         await vec(document, doc.notebook.name);
 
-        return c.json({
-            "success": true
-        }, 201)
+        return c.json(new APIResponse(201, {
+            documentID : doc.id
+        }))
     }
     catch (error) {
         if (error instanceof z.ZodError) {
-            return c.json(
-                { error: error.flatten() },
-                400
-            );
+            throw new APIError(500, "Validation Error");
         };
         console.log(error);
-        return c.json({
-            error: "Internal server error" 
-        }, 500)
+        throw new APIError(500);
     }
 }
 
@@ -92,7 +89,7 @@ export const pdfUpload = async (c: Context) => {
         const file = body['file'];
 
         if (!file || !(file instanceof File)) {
-            return c.json({ error: "PDF file is required" }, 400);
+            throw new APIError(400, "PDF file is required");
         }
 
         //find document related to document first
@@ -131,15 +128,13 @@ export const pdfUpload = async (c: Context) => {
         const collection_name = doc.notebook.name;
         await vec(docs, collection_name);
         await fs.unlink(temp_file);
-        return c.json({
-            "success": true
-        }, 201)
+        
+        return c.json(new APIResponse(201, {
+            documentID : doc.id
+        }))
     } catch (error) {
         console.warn(error);
-        return c.json({
-            succss: "false",
-            error: "Internal server error "
-        }, 500)
+        throw new APIError(500);
     };
 }
 
@@ -176,24 +171,18 @@ export const webSiteUpload = async (c : Context)=>{
         const collection_name = doc.notebook.name;
         const vector = await vec(content, collection_name);
         if (!vector){
-          return c.json({
-            "success" : false
-          }, 500);
+          throw new APIError(500)
         };
-        return c.json({
-          "success": true,
-          "data": "Created Successfully"
-        }, 201);
+        return c.json(new APIResponse(201, {
+            documentID : doc.id
+        },
+        "embeddings created successfully"
+        ))
       } catch (error) {
         if (error instanceof z.ZodError) {
-          return c.json(
-            { error: error.flatten() },
-            500
-          );
+            throw new APIError(400, "Validation Error", [error]);
         }
-        return c.json({
-          succss : "false"
-        })
+        throw new APIError(500);
       }
 }
 

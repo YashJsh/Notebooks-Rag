@@ -69,7 +69,7 @@ export const Chat = () => {
     };
 
     return (
-        <div className="w-1/2 bg-background p-3 flex flex-col h-full">
+        <div className="w-full bg-background p-3 flex flex-col h-full">
             {/* Header */}
             <div className="flex items-center justify-between gap-2 mb-2 ">
                 <div className="flex gap-2 ">

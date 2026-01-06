@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { Database, LoaderIcon, MessageSquareText } from "lucide-react";
-import { sendData, sendLink, uploadPdf } from "@/utils/request";
+
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
+import { useUploadResource } from "@/hooks/useUploadMutation";
 
 export const Upload = () => {
+  const { mutate, isPending, error } = useUploadResource();
   const [data, setData] = useState<string>("");
-  const [loading, setLoading] = useState(false);
+
   const [isDragging, setIsDragging] = useState(false);
 
   const handleSubmit = async (data: string) => {
@@ -18,42 +20,30 @@ export const Upload = () => {
       console.warn("Too short data")
       return;
     };
-    setLoading(true);
-    await sendData(data);
-    toast("Embedding Created");
+    mutate({
+      type : "text",
+      text : data
+    });
     setData("");
-    setLoading(false);
   };
 
   const sendFile = async (file : File)=>{
-    setLoading(true);
-    try {
-
-      const response = await uploadPdf(file);
-      if (response){
-        toast("Embedding created");
-      }
-    } catch (error) {
-      console.warn(error);
-    } finally{
-      setLoading(false);
-    }
+    mutate({
+      type : "pdf",
+      file : file
+    });
   }
 
   const sendWebsiteLink = async (link : string)=>{
-    setLoading(true);
-    const res = await sendLink(link);
-    if (res){
-      toast("Website scraped successfully")
-    }else{
-      toast("Error in scraping website")
-    }
-    setLoading(false);
+    mutate({
+      type : "website",
+      url : link
+    });
   }
 
-  if (loading) {
+  if (isPending) {
     return (
-      <div className="w-1/2 border-r border-border p-6 flex flex-col h-full">
+      <div className="w-full border-r border-border p-6 flex flex-col h-full">
         <div className="flex-1 flex flex-col items-center justify-center space-y-4 bg-muted/30 rounded-lg">
           {/* Contextual Text */}
           <div className="text-center items-center flex flex-col justify-center gap-1">
@@ -67,7 +57,7 @@ export const Upload = () => {
   }
 
   return (
-    <div className="w-1/2 border-r border-border p-6 flex flex-col gap-4 h-full">
+    <div className="w-full border-r border-border p-6 flex flex-col gap-4 h-full">
       <div className="flex items-center gap-2 mb-4">
         <MessageSquareText className="text-primary" size={20} />
         <h2 className="text-lg font-bold text-foreground">Upload</h2>
@@ -163,7 +153,6 @@ export const Upload = () => {
           }}
         />
       </div>
-
     </div>
   );
 }

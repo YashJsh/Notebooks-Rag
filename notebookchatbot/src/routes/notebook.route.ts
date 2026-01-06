@@ -4,9 +4,32 @@ import { authMiddleware } from "../middleware/auth.middleware";
 
 const notebookRoute = new Hono();
 
-notebookRoute.get("/notebook", authMiddleware, getNotebookController);
-notebookRoute.post("/notebook/create", authMiddleware, createNotebookController);
-notebookRoute.get("/notebook/:id", authMiddleware,getNotebook);
-notebookRoute.delete("/notebook/:id", authMiddleware, deleteNotebookController);
+/**
+ * @route GET /api/v1/notebooks
+ * @description Get all notebooks for authenticated user
+ * @access Private
+ */
+notebookRoute.get("/", getNotebookController);
+
+/**
+ * @route POST /api/v1/notebooks/create
+ * @description Create a new notebook
+ * @access Private
+ */
+notebookRoute.post("/create", createNotebookController);
+
+/**
+ * @route GET /api/v1/notebooks/:id
+ * @description Get a notebook by ID
+ * @access Private
+ */
+notebookRoute.get("/:id",getNotebook);
+
+/**
+ * @route DELETE /api/v1/notebooks/:id
+ * @description Delete a notebook by ID
+ * @access Private
+ */
+notebookRoute.delete("/:id", deleteNotebookController);
 
 export default notebookRoute;

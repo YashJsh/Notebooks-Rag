@@ -1,46 +1,42 @@
 import type { Context, Next } from "hono"
 import { verifyToken } from "../lib/tokenManagment";
 import { client } from "../lib/prisma";
+import { APIError } from "../utils/apiError";
 
 export const authMiddleware = async (c : Context, next : Next)=>{
     try {
+        // Token from the header
         const token = await c.req.header('Authorization');
         if (!token){
-            return c.json({
-                "success" : "false",
-                "error" : "token not present"
-            }, 403)
+            throw new APIError(403, "Token NOT Found");
         };
+        // Verifying Token
         const data  = await verifyToken(token);
         if (!data){
-            return c.json({
-                "success" : "false",
-                "error" : "Incorrect Token"
-            }, 403)
+            throw new APIError(403, "Incorrect Token");
         };
+
         console.log("Decoded data is : ", data);
         console.log(token);
 
+        //Search if client exists
         const user = await client.user.findUnique({
             where : {
                 id : data.id,
                 email : data.email
             }
         })
+        // If not send error
         if (!user){
-            return c.json({
-                success : "false", 
-                error : "Not found"
-            }, 401)
+            throw new APIError(401, "User not found")
         };
+
+        //Set id and email in request
         c.set("id", user.id);
         c.set("email", user.email);
         return await next();
     } catch (error) {
         console.warn("error is :",error);
-        return c.json({
-            "success" : false,
-            "error" : error
-        }, 500)
+        throw new APIError(500)
     }
 };
