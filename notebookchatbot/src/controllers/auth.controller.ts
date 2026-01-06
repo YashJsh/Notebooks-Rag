@@ -4,6 +4,8 @@ import { SignInSchema, SignUpSchema } from "../schema/auth.schema";
 import { encryptPassword, comparePassword } from "../lib/encryption";
 import { ZodError } from "zod";
 import { createToken } from "../lib/tokenManagment";
+import { APIResponse } from "../utils/apiResponse";
+import { APIError } from "../utils/apiError";
 
 export const signUpController = async (c : Context)=>{
     try {
@@ -16,10 +18,7 @@ export const signUpController = async (c : Context)=>{
             }
         });
         if (user){
-            return c.json({
-                success : false,
-                message : "User already exists"
-            }, 409)
+            throw new APIError(409, "User already exists");
         };
         const encrypt = await encryptPassword(parsedBody.password);
         const newUser = await client.user.create({
@@ -29,28 +28,31 @@ export const signUpController = async (c : Context)=>{
             }
         });
         const token = await createToken({email : newUser.email, id : newUser.id})
-        return c.json({
-            success : true,
-            data : {
-                email : newUser.email,
-                id : newUser.id,
-                token : token
-            }
-        }, 201);
+        
+        return c.json(new APIResponse(201, {
+            email : newUser.email,
+            id : newUser.id,
+            token
+        }, "User created Successfully"))
+        // return c.json({
+        //     success : true,
+        //     data : {
+        //         email : newUser.email,
+        //         id : newUser.id,
+        //         token : token
+        //     }
+        // }, 201);
 
     } catch (error) {
         if (error instanceof ZodError){
-            console.log(error);
-            return c.json({
-                success : false,
-                error : error
-            }, 500)
+            throw new APIError(
+                400,
+                "Invalid request data",
+                [error]
+            );
         }
         console.log(error);
-        return c.json({
-            success : false,
-            error : error
-        }, 500)
+        throw new APIError(500, "Something went wrong", [error]);
     }
 }
 
@@ -64,40 +66,31 @@ export const signInController = async (c : Context) =>{
             }
         });
         if (!user){
-            return c.json({
-                success : false,
-                message : "User Not found"
-            }, 404)
+            console.log("User not found");
+            throw new APIError(404, "User not found");
         }
         const check = await comparePassword(parsedBody.password, user.password);
         if (!check){
-            return c.json({
-                success : false,
-                message : "Incorrect Password"
-            }, 401)
+            console.log("Incorrect Password");
+            throw new APIError(401, "Incorrect Password");
         };
         const token = await createToken({email : user.email, id : user.id})
-        console.log(token);
-        return c.json({
-            success : "true",
-            data : {
+        console.log("token : ",token);
+        return c.json(new APIResponse(
+            200,
+            {
                 email : user.email,
                 id : user.id,
                 token
-            }
-        });
+            },
+            "Logged In successfully"
+        ))
     } catch (error) {
         if (error instanceof ZodError){
             console.log(error);
-            return c.json({
-                success : false,
-                error : error
-            }, 500)
+            throw new APIError(400, "Invalid request data", [error]);
         }
         console.log(error);
-        return c.json({
-            success : false,
-            error : error
-        }, 500)
+        throw new APIError(500, "Internal Server Error", [error])
     }
 }

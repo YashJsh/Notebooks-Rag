@@ -2,6 +2,8 @@ import type { Context } from "hono";
 import { EnhanceQuery } from "../utils/enhanceQuery";
 import { chat } from "../utils/chat";
 import z from 'zod';
+import { APIResponse } from "../utils/apiResponse";
+import { APIError } from "../utils/apiError";
 
 export const chatController = async (c : Context)=>{
     try {
@@ -9,22 +11,21 @@ export const chatController = async (c : Context)=>{
         const data = z.string().parse(query);
         const enhanceQuery = await EnhanceQuery(data);
         const response = await chat(enhanceQuery as string);
-        return c.json({
-          "success": "true",
-          "data": {
+        return c.json(new APIResponse(
+          200,
+          {
             "role": "assistant",
             "content": response!.airesponse.answer,
             "id": response!.id,
             "meta": response!.airesponse
-          }
-        })
+          },
+          "Response from AI"
+        ))
+     
       } catch (error) {
         if (error instanceof z.ZodError) {
-          return c.json(
-            { error: error.flatten() },
-            400
-          );
+          throw new APIError(400, "Validation Error", [error.message])
         }
-        console.log(error);
+        throw new APIError(500)
       }
 };

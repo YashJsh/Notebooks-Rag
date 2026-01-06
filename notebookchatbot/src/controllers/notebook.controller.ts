@@ -1,6 +1,8 @@
 import type { Context } from "hono";
 import { client } from "../lib/prisma";
 import { notebookSchema } from "../schema/notebook.schema";
+import { APIResponse } from "../utils/apiResponse";
+import { APIError } from "../utils/apiError";
 
 export const getNotebookController = async (c: Context) => {
     try {
@@ -10,15 +12,9 @@ export const getNotebookController = async (c: Context) => {
                 userId: id
             }
         });
-        return c.json({
-            success: true,
-            data: getNotebooks
-        }, 200);
+        return c.json(new APIResponse(200, getNotebooks))
     } catch (error) {
-        return c.json({
-            success: false,
-            error: error
-        }, 500)
+        throw new APIError(500);
     }
 };
 
@@ -33,19 +29,17 @@ export const createNotebookController = async (c: Context) => {
                 userId: id
             }
         });
-        return c.json({
-            success: true,
-            data: {
+        return c.json(new APIResponse(
+            201,
+            {
                 notebook: notebook.name,
                 notebookId: notebook.id,
                 createdBy: notebook.userId
             }
-        }, 201)
+        )
+        )
     } catch (error) {
-        return c.json({
-            success: false,
-            error: error
-        }, 500)
+        throw new APIError(500);
     }
 };
 
@@ -60,20 +54,12 @@ export const deleteNotebookController = async (c: Context) => {
             }
         });
         if (!deleteNotebook) {
-            return c.json({
-                success: false,
-                error: "error deleting notebook"
-            }, 403)
+            throw new APIError(403, "Error Deleting notebook")
         };
-        return c.json({
-            success: true,
-            data: "notebook deleted successfully"
-        }, 200);
+
+        return c.json(new APIResponse(201, { notebookId: deleteNotebook.id }, "notebook deleted successsfully"));
     } catch (error) {
-        return c.json({
-            success: false,
-            error: error
-        }, 500)
+        throw new APIError(500);
     }
 };
 
@@ -87,14 +73,11 @@ export const getNotebook = async (c: Context) => {
                 userId: userId
             }
         });
-        return c.json({
-            success: true,
-            data: notebook
-        });
+        return c.json(new APIResponse(200, {
+            notebook
+        },
+        ));
     } catch (error) {
-        return c.json({
-            success: false,
-            error: error
-        }, 500)
+        throw new APIError(500);
     }
 };

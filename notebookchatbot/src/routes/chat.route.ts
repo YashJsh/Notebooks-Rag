@@ -3,6 +3,11 @@ import { chatController } from "../controllers/chat.controller";
 
 const chatRoute = new Hono();
 
-chatRoute.post("/chat", chatController);
+/**
+ * @route POST /api/v1/chat
+ * @description Chat with the notebook
+ * @access Private
+ */
+chatRoute.post("/", chatController);
 
 export default chatRoute;
