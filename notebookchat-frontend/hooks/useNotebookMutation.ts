@@ -1,19 +1,17 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { api } from "@/lib/api";    
-import { createNotebook, deleteNotebook, getNotebook, getNoteBooks } from "@/api/notebook.api";
-import { get } from "http";
+import { createNotebook, deleteNotebook, getNotebook, getNoteBooks } from "@/api/notebook.api"; 
 
 const useGetNotebooks = () => {
     return useQuery({
       queryKey: ["notebooks"],
-      queryFn: getNoteBooks
+      queryFn: getNoteBooks,
     });
 };
 
 const useCreateNotebook = ()=>{
     return useMutation({
         mutationKey : ["createNotebook"],
-        mutationFn : createNotebook
+        mutationFn : createNotebook,
     });
 };
 
@@ -26,12 +24,12 @@ const useSpecificNotebook = (notebookId : string)=>{
 };
 
 const useDeleteNotebook = (notebookId : string)=>{
-    return useQuery({
-        queryKey : ["notebook", notebookId],
-        queryFn : ()=>{
-            deleteNotebook(notebookId)
+    return useMutation({
+        mutationKey : ["notebook", notebookId],
+        mutationFn : ()=>{
+            const response = deleteNotebook(notebookId)
+            return response;
         },
-        enabled : !!notebookId
     })
 }
 

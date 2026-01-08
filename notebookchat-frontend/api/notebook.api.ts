@@ -1,5 +1,5 @@
 import { api } from "@/lib/api"
-import { createNotebookType } from "@/types/notebook.tyeps";
+import { createNotebookType } from "@/types/notebook.types";
 
 //For fetching all the notebooks
 export const getNoteBooks = async ()=>{
