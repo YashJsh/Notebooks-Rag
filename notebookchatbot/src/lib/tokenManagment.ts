@@ -1,8 +1,6 @@
 import { decode, sign, verify } from 'hono/jwt';
+import jwt from "jsonwebtoken";
 import { z } from "zod";
-
-
-const secret = "hadsfw1123qsd";
 
 const AuthPayloadSchema = z.object({
   id: z.string(),
@@ -11,17 +9,33 @@ const AuthPayloadSchema = z.object({
 
 export type AuthPayload = z.infer<typeof AuthPayloadSchema>;
 
-export const createToken = async (data : {email : string, id : string})=>{
-    const token = await sign(data, secret);
+export const createAccessToken = async (data : {email : string, id : string})=>{
+    const token = await jwt.sign(
+      data,
+      process.env.ACCESS_TOKEN_SECRET!,
+      {
+        expiresIn : 1800
+      }
+    );
     return token;
 };
 
+export const createRefreshToken = async (data : {email : string, id : string})=>{
+  const token = await jwt.sign(
+    data,
+    process.env.REFRESH_TOKEN_SECRET!,
+    {
+      expiresIn : "7d"
+    }
+  );
+  return token;
+};
 
 export const verifyToken = async (
   token: string
 ): Promise<AuthPayload | null> => {
   try {
-    const data = await verify(token, secret);
+    const data = await verify(token, process.env.REFRESH_TOKEN_SECRET!);
     return data as AuthPayload;
   } catch {
     return null;

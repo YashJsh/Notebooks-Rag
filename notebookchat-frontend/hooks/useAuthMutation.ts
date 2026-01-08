@@ -26,7 +26,7 @@ export const useSignUp = ()=>{
               error?.response?.data?.message || "Sign Up failed"
             );
         },
-    })
+    });
 };
 
 export const useSignIn = ()=>{
