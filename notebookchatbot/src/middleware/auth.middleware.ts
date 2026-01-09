@@ -2,11 +2,14 @@ import type { Context, Next } from "hono"
 import { verifyToken } from "../lib/tokenManagment";
 import { client } from "../lib/prisma";
 import { APIError } from "../utils/apiError";
+import { getCookie } from "hono/cookie";
+
 
 export const authMiddleware = async (c : Context, next : Next)=>{
     try {
+        const token = getCookie(c, "accessToken");
+        
         // Token from the header
-        const token = await c.req.header('Authorization');
         if (!token){
             throw new APIError(403, "Token NOT Found");
         };
@@ -15,9 +18,6 @@ export const authMiddleware = async (c : Context, next : Next)=>{
         if (!data){
             throw new APIError(403, "Incorrect Token");
         };
-
-        console.log("Decoded data is : ", data);
-        console.log(token);
 
         //Search if client exists
         const user = await client.user.findUnique({

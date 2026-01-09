@@ -28,7 +28,6 @@ export const textUpload = asyncHandler(async (c: Context) => {
         }
     });
 
-
     const doc =
         response ??
         (await client.document.create({
