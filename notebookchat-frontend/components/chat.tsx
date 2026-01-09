@@ -74,17 +74,19 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
     }, [messages, loading]);
 
     const sendMessage = async () => {
+        if (totalSources === 0) return;
         const text = query.trim();
         if (!text) return;
 
         if (textareaRef.current) textareaRef.current.style.height = "auto";
+        
+        setQuery("");
 
         setMessages(prev => [
             ...prev,
             { role: "user", content: text, id: crypto.randomUUID() }
         ]);
 
-        setQuery("");
         await sendChat(text);
     };
 
@@ -126,8 +128,8 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
                 {/* Container for messages */}
                 <div className="max-w-3xl mx-auto w-full p-4 space-y-6">
                     
-                    {messages.length === 0 ? (
-                        <div className="flex flex-col justify-center items-center h-[50vh] text-center space-y-4 opacity-0 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    {true ? (
+                        <div className="flex flex-col justify-center items-center h-[50vh] text-center space-y-4  animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                                 <Sparkles className="w-6 h-6 text-primary" />
                             </div>
@@ -186,7 +188,7 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
                             ref={textareaRef}
                             rows={1}
                             value={query}
-                            placeholder="Ask a question..."
+                            placeholder={totalSources === 0 ? "Add sources to start chatting" : "Ask a question..."}
                             className="
                                 w-full resize-none bg-transparent 
                                 px-4 py-3 pr-12 
@@ -197,13 +199,14 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
                             onInput={handleInput}
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyDown={handleKeyDown}
+                            disabled={totalSources === 0}
                         />
                         
                         <div className="absolute right-2 bottom-2">
                             <Button 
                                 size="icon" 
                                 className="h-8 w-8 rounded-lg transition-all" 
-                                disabled={!query.trim() || loading}
+                                disabled={!query.trim() || loading || totalSources === 0}
                                 onClick={sendMessage}
                             >
                                 <ArrowUp className="h-4 w-4" />

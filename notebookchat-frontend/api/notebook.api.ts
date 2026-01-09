@@ -1,44 +1,37 @@
-import { api } from "@/lib/api"
+// api/notebook.api.ts
+import { api } from "@/lib/api";
+import {
+  Notebook,
+  GetNotebooksApiResponse,
+  GetNotebookApiResponse,
+} from "@/types/notebook.types";
 import { createNotebookType } from "@/types/notebook.types";
 
-export interface getNotebookType {
-    id: string;
-    name: string;
-    userId: string;
-    createdAt: string; // IMPORTANT: API returns ISO string, not Date
-}
-export interface GetNotebooksResponse {
-    data: getNotebookType[];
-    message: string;
-}
-
-export interface GetNotebook {
-    data: {
-      notebook: getNotebookType | null;
-    };
-}
-
-//For fetching all the notebooks
-export const getNoteBooks = async () : Promise<getNotebookType[]>=>{
-    const response = await api.get<GetNotebooksResponse>("/notebooks");
-    return response.data.data;
+// Fetch all notebooks
+export const fetchNotebooks = async (): Promise<Notebook[]> => {
+  const response = await api.get<GetNotebooksApiResponse>("/notebooks");
+  return response.data.data;
 };
 
-//For creating a notebook
-export const createNotebook = async(data : createNotebookType)=>{
-    const response = await api.post("/notebooks/create", JSON.stringify(data));
-    return response.data;
+// Fetch a specific notebook
+export const fetchNotebookById = async (
+  id: string
+)=> {
+  const response = await api.get<GetNotebookApiResponse>(`/notebooks/${id}`);
+    return {
+    notebook: response.data.data.notebook,
+    resources: response.data.data.resources,
+  };;
 };
 
-// Get a specific notebook
-export const getNotebook = async(id : string)=>{
-    const response = await api.get<GetNotebook>(`/notebooks/${id}`);
-    console.log("getNotebook",response.data);
-    return response.data.data.notebook;
+// Create notebook
+export const createNotebook = async (data: createNotebookType) => {
+  const response = await api.post("/notebooks/create", data);
+  return response.data;
 };
 
-// Delete a particualar notebook
-export const deleteNotebook = async (id : string)=>{
-    const response = await api.delete(`/notebooks/${id}`);
-    return response.data;
+// Delete notebook
+export const deleteNotebook = async (id: string) => {
+  const response = await api.delete(`/notebooks/${id}`);
+  return response.data;
 };
