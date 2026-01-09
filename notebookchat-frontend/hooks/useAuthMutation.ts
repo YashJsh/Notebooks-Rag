@@ -18,7 +18,7 @@ export const useSignUp = ()=>{
         onSuccess : (data)=>{
             const { email, id, token } = data.data;
             setAuth({email, id}, token);
-            router.push("/");
+            router.push("/signin");
             toast("Signed Up Successfully");
         },
         onError: (error: any) => {

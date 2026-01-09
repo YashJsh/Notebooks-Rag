@@ -1,37 +1,70 @@
 "use client"
 
 import { AIAnswerResponse, BackendResponse, chatResponse } from "@/utils/chatResponse"
-import { MessageSquareText } from "lucide-react";
+import { 
+    MessageSquare, 
+    ArrowUp, 
+    BookOpen, 
+    Sparkles 
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AnswerCard } from "./answer-card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface Message {
     role: "user" | "assistant";
     content: string;
-    meta?: AIAnswerResponse,
+    meta?: AIAnswerResponse;
     id: string;
 }
 
-export const Chat = () => {
+interface ChatProps {
+    notebookName: string;
+    totalSources: number;
+}
+
+export const Chat = ({ notebookName, totalSources }: ChatProps) => {
+
     const [messages, setMessages] = useState<Message[]>([]);
     const [query, setQuery] = useState("");
     const [loading, setLoading] = useState(false);
+    
     const scrollRef = useRef<HTMLDivElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const handleInput = () => {
+        const textarea = textareaRef.current;
+        if (textarea) {
+            textarea.style.height = "auto";
+            textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
+        }
+    };
 
     const sendChat = async (query: string) => {
         setLoading(true);
-        const response: BackendResponse = await chatResponse(query);
-        if (!response) {
-            toast("No response to show");
-            return;
-        };
-        console.log(response);
-        setMessages(prev => [
-            ...prev,
-            { role: response.data.role, content: response.data.content, meta: response.data.meta, id: response.data.id }
-        ]);
-        setLoading(false);
+        try {
+            const response: BackendResponse = await chatResponse(query);
+            if (!response) {
+                toast.error("No response to show");
+                return;
+            };
+            
+            setMessages(prev => [
+                ...prev,
+                { 
+                    role: response.data.role, 
+                    content: response.data.content, 
+                    meta: response.data.meta, 
+                    id: response.data.id 
+                }
+            ]);
+        } catch (error) {
+            toast.error("Failed to get response");
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -40,23 +73,18 @@ export const Chat = () => {
         }
     }, [messages, loading]);
 
-
     const sendMessage = async () => {
         const text = query.trim();
-        if (!text) {
-            toast("Text is missing");
-            return;
-        }
+        if (!text) return;
 
-        // Add user message
+        if (textareaRef.current) textareaRef.current.style.height = "auto";
+
         setMessages(prev => [
             ...prev,
             { role: "user", content: text, id: crypto.randomUUID() }
         ]);
 
-        setQuery(""); // clear textarea
-
-        // Send to assistant
+        setQuery("");
         await sendChat(text);
     };
 
@@ -64,116 +92,129 @@ export const Chat = () => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
-            setQuery("");
         }
     };
 
     return (
-        <div className="w-full bg-background p-3 flex flex-col h-full">
-            {/* Header */}
-            <div className="flex items-center justify-between gap-2 mb-2 ">
-                <div className="flex gap-2 ">
-                    <MessageSquareText className="text-primary" size={18} />
-                    <h2 className="text-sm font-bold text-foreground">Chat</h2>
-                </div>
-                <div>
-                    <h1 className="text-sm font-bold text-foreground">Resources : 0</h1>
+        <div className="w-full flex flex-col h-full bg-background border-l border-border/50">
+            
+            {/* --- Header --- */}
+            {/* Outer div handles border/bg, Inner div handles centering */}
+            <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+                <div className="max-w-3xl mx-auto w-full flex items-center justify-between px-4 py-3">
+                    <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                <MessageSquare className="w-4 h-4 text-primary" />
+                                Chat
+                            </h2>
+                            <Badge variant="secondary" className="font-normal text-xs px-2 py-0 h-5">
+                                {notebookName}
+                            </Badge>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
+                        <BookOpen className="w-3.5 h-3.5" />
+                        <span>{totalSources} {totalSources === 1 ? 'Source' : 'Sources'}</span>
+                    </div>
                 </div>
             </div>
 
-            {/* Chat Area */}
-            <div ref={scrollRef} className="flex-1 rounded-xl border border-border bg-muted/30 shadow-sm p-4 mb-2 overflow-y-auto space-y-3">
-                {messages.length === 0 ? (
-                    <div className="flex flex-col justify-center text-center items-center h-full">
-                        <h1 className="uppercase font-semibold text-muted-foreground tracking-tighter">Start Asking</h1>
-                        <h2 className="text-sm font-semibold text-muted-foreground/80">Upload the resource and ask questions</h2>
-                    </div>
-                ) : (
-                    messages.map((msg, index) => (
-                        <div
-                            key={index}
-                            className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                        >
+            {/* --- Chat Area --- */}
+            <div ref={scrollRef} className="flex-1 overflow-y-auto scroll-smooth">
+                {/* Container for messages */}
+                <div className="max-w-3xl mx-auto w-full p-4 space-y-6">
+                    
+                    {messages.length === 0 ? (
+                        <div className="flex flex-col justify-center items-center h-[50vh] text-center space-y-4 opacity-0 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                                <Sparkles className="w-6 h-6 text-primary" />
+                            </div>
+                            <div className="space-y-1">
+                                <h3 className="font-semibold text-foreground">Ask anything about {notebookName}</h3>
+                                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                                    I can help you analyze your notes, summarize key points, or find specific details.
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        messages.map((msg, index) => (
                             <div
-                                className={`max-w-[75%] px-4 py-2 text-sm rounded-2xl shadow-sm
-                            ${msg.role === 'user'
-                                        ? 'bg-primary text-primary-foreground rounded-br-none'
-                                        : 'bg-card text-card-foreground border border-border rounded-bl-none'
-                                    }
-                        `}
-                            >   
-                                {
-                                    msg.role === "user" ?  <div>
-                                        <p className="text-sm">{msg.content}</p>
-                                    </div>: 
-                                    <div className="mt-3">
-                                    {
-                                        msg.meta && <AnswerCard data={msg.meta} />
-                                    }
+                                key={msg.id || index}
+                                className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                            >
+                                <div
+                                    className={`
+                                        max-w-[85%] sm:max-w-[75%] px-5 py-3 text-sm shadow-sm
+                                        ${msg.role === 'user'
+                                            ? 'bg-primary text-primary-foreground rounded-2xl rounded-tr-sm'
+                                            : 'bg-muted/50 text-foreground border border-border/50 rounded-2xl rounded-tl-sm'
+                                        }
+                                    `}
+                                >   
+                                    {msg.role === "user" ? (
+                                        <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {msg.meta && <AnswerCard data={msg.meta} />}
+                                        </div>
+                                    )}
                                 </div>
-                                }
-                                
+                            </div>
+                        ))
+                    )}
 
+                    {/* Loading State */}
+                    {loading && (
+                        <div className="flex justify-start w-full animate-in fade-in duration-300">
+                            <div className="bg-muted/50 border border-border/50 px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-1.5">
+                                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce"></div>
                             </div>
                         </div>
-                    ))
-                )}
-
-                {/* Loading Indicator */}
-                {loading && (
-                    <div className="w-full justify-start animate-in fade-in duration-300">
-                        <div className="rounded-2xl px-4 py-2 text-sm">
-                            <div className="flex gap-1 h-full items-center">
-                                <div className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                                <div className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                                <div className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full animate-bounce"></div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
 
-            {/* Input Area */}
-            <div className="sticky bottom-0 z-50 bg-background pt-2">
-                <div className="relative">
-                    <textarea
-                        rows={1}
-                        placeholder="Ask questions about your sources..."
-                        className="
-                        w-full resize-none
-                        rounded-xl border border-input
-                        bg-background text-foreground
-                        px-3 py-3
-                        text-sm leading-relaxed
-                        max-h-40 overflow-y-auto
-                        shadow-sm
-                        placeholder:text-muted-foreground
-                        focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
-                        scrollbar-hide scroll-smooth
-                    "
-                        onInput={(e) => {
-                            //@ts-ignore
-                            e.target.style.height = "auto";
-                            //@ts-ignore
-                            e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
-                        }}
-                        onChange={(e) => setQuery(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                    />
+            {/* --- Input Area --- */}
+            <div className="bg-background p-4 pt-2">
+                <div className="max-w-3xl mx-auto w-full">
+                    <div className="relative flex items-end rounded-xl border border-input bg-background shadow-sm focus-within:ring-1 focus-within:ring-ring transition-all">
+                        <textarea
+                            ref={textareaRef}
+                            rows={1}
+                            value={query}
+                            placeholder="Ask a question..."
+                            className="
+                                w-full resize-none bg-transparent 
+                                px-4 py-3 pr-12 
+                                text-sm placeholder:text-muted-foreground 
+                                focus:outline-none max-h-[160px] overflow-y-auto
+                                scrollbar-hide
+                            "
+                            onInput={handleInput}
+                            onChange={(e) => setQuery(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                        />
+                        
+                        <div className="absolute right-2 bottom-2">
+                            <Button 
+                                size="icon" 
+                                className="h-8 w-8 rounded-lg transition-all" 
+                                disabled={!query.trim() || loading}
+                                onClick={sendMessage}
+                            >
+                                <ArrowUp className="h-4 w-4" />
+                                <span className="sr-only">Send</span>
+                            </Button>
+                        </div>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground text-center mt-2">
+                        AI can make mistakes. Check important info.
+                    </div>
                 </div>
-
-                <button
-                    className="
-                    mt-2 w-full bg-primary text-primary-foreground 
-                    font-semibold rounded-lg py-2 text-sm 
-                    transition-colors hover:bg-primary/90
-                    shadow-sm disabled:opacity-50
-                "
-                    onClick={sendMessage}
-                    disabled={loading}
-                >
-                    Send
-                </button>
             </div>
         </div>
     )

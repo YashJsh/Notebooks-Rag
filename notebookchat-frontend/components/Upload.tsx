@@ -43,7 +43,7 @@ export const Upload = () => {
 
   if (isPending) {
     return (
-      <div className="w-full border-r border-border p-6 flex flex-col h-full">
+      <div className="w-1/3 border-r border-border p-6 flex flex-col h-full">
         <div className="flex-1 flex flex-col items-center justify-center space-y-4 bg-muted/30 rounded-lg">
           {/* Contextual Text */}
           <div className="text-center items-center flex flex-col justify-center gap-1">
@@ -57,7 +57,7 @@ export const Upload = () => {
   }
 
   return (
-    <div className="w-full border-r border-border p-6 flex flex-col gap-4 h-full">
+    <div className="w-1/3 border-r border-border p-6 flex flex-col gap-4 h-full">
       <div className="flex items-center gap-2 mb-4">
         <MessageSquareText className="text-primary" size={20} />
         <h2 className="text-lg font-bold text-foreground">Upload</h2>

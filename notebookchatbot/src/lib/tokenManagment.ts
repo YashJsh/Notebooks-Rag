@@ -1,5 +1,5 @@
-import { decode, sign, verify } from 'hono/jwt';
-import jwt from "jsonwebtoken";
+
+import jwt, { verify } from "jsonwebtoken";
 import { z } from "zod";
 
 const AuthPayloadSchema = z.object({
@@ -35,7 +35,7 @@ export const verifyToken = async (
   token: string
 ): Promise<AuthPayload | null> => {
   try {
-    const data = await verify(token, process.env.REFRESH_TOKEN_SECRET!);
+    const data = await verify(token, process.env.ACCESS_TOKEN_SECRET!);
     return data as AuthPayload;
   } catch {
     return null;

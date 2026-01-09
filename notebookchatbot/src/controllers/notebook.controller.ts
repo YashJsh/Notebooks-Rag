@@ -15,6 +15,7 @@ export const getNotebookController = asyncHandler(async (c: Context) => {
     if (!getNotebooks) {
         throw new APIError(404, "No notebook found")
     };
+    console.log("getNotebooks is : ",getNotebooks);
     return c.json(new APIResponse(getNotebooks), 201)
 });
 
@@ -62,7 +63,8 @@ export const getNotebook = asyncHandler(async (c : Context)=>{
                 id: notebookId,
                 userId: userId
             }
-        });
+    });
+    console.log("Notebook sending : ", notebook);
     return c.json(new APIResponse({
             notebook
     },
