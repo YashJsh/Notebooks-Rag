@@ -36,7 +36,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { getNotebookType } from '@/api/notebook.api';
+
 import { formatTime } from '@/utils/time-format';
 import { useRouter } from 'next/navigation'; // 1. Import Router
 
@@ -44,12 +44,12 @@ export default function Dashboard() {
   const [notebookTitle, setNotebookTitle] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  
+
   const router = useRouter(); // 2. Initialize Router
-  
+
   const { data, isPending } = useGetNotebooks();
   const { mutate: createNotebook, isPending: isCreating } = useCreateNotebook();
-  const { mutate : deleteNotebook} = useDeleteNotebook(); 
+  const { mutate: deleteNotebook } = useDeleteNotebook();
 
   const handleCreate = () => {
     if (!notebookTitle.trim()) return;
@@ -95,14 +95,14 @@ export default function Dashboard() {
           </button>
 
           {/* 2. Existing Notebook Cards */}
-          {data?.map((notebook : getNotebookType) => (
-            <Card 
-              key={notebook.id} 
+          {data?.map((notebook) => (
+            <Card
+              key={notebook.id}
               // 3. Add onClick handler and cursor-pointer
               onClick={() => router.push(`/home/${notebook.id}`)}
               className="group relative flex flex-col justify-between overflow-hidden transition-all hover:shadow-md hover:border-primary/50 h-[220px] cursor-pointer"
             >
-              
+
               <CardHeader className="p-5 pb-2">
                 <div className="flex justify-between items-start">
                   <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-chart-1/20 to-chart-2/20 flex items-center justify-center mb-3">
@@ -112,11 +112,11 @@ export default function Dashboard() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       {/* 4. Stop Propagation prevents the card click from firing when opening menu */}
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="h-8 w-8 -mr-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => e.stopPropagation()} 
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <MoreVertical className="h-4 w-4" />
                         <span className="sr-only">More</span>
@@ -155,7 +155,7 @@ export default function Dashboard() {
             </Card>
           ))}
         </div>
-        
+
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>

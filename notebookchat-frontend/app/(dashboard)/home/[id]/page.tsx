@@ -17,12 +17,12 @@ const Notebook = () => {
           <Loader2Icon className="h-6 w-6 animate-spin" />
         </div>
       );
-    }
+    };
 
     return <div className="flex flex-col h-screen overflow-hidden">
     <div className="flex flex-1 overflow-hidden">
       <Upload/>
-      <Chat notebookName={data?.name!} totalSources={10}/>
+      <Chat notebookName={data?.notebook?.name!} totalSources={data?.resources!}/>
     </div>
   </div>;
 }

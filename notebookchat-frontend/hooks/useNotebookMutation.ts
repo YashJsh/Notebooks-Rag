@@ -1,14 +1,14 @@
 "use client"
 
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createNotebook, deleteNotebook, getNotebook, getNoteBooks } from "@/api/notebook.api"; 
-import { getNotebookType } from "@/api/notebook.api";
+import { createNotebook, deleteNotebook, fetchNotebooks, fetchNotebookById } from "@/api/notebook.api"; 
+
 import { toast } from "sonner";
 
 const useGetNotebooks = () => {
-    return useQuery<getNotebookType[]>({
+    return useQuery({
       queryKey: ["notebooks"],
-      queryFn: getNoteBooks,
+      queryFn: fetchNotebooks,
     });
 };
 
@@ -27,9 +27,9 @@ const useCreateNotebook = ()=>{
 };
 
 const useSpecificNotebook = (id: string)=>{
-    return useQuery<getNotebookType | null>({
+    return useQuery({
         queryKey: ["notebook", id],
-        queryFn: () => getNotebook(id),
+        queryFn: () => fetchNotebookById(id),
         enabled: !!id,
     })
 };

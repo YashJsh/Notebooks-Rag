@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/Navbar";
+import ProtectedRoute from "@/components/auth/protected-route";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -6,9 +7,11 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <div className="h-screen bg-background flex flex-col">
-      <Navbar />
-    {children}
-    </div>
+    <ProtectedRoute>
+      <div className="h-screen bg-background flex flex-col">
+        <Navbar />
+        {children}
+      </div>
+    </ProtectedRoute>
   );
 }

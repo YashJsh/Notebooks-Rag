@@ -62,11 +62,27 @@ export const getNotebook = asyncHandler(async (c : Context)=>{
             where: {
                 id: notebookId,
                 userId: userId
-            }
+            },
     });
+    const getSource = await client.document.findFirst({
+        where : {
+            notebookId : notebookId
+        },
+        include : {
+            files : true
+        }
+    });
+    let resources;
+    if (getSource == null){
+        resources = 0;
+    }
+    else {
+        resources = getSource?.files.length;
+    }
+    console.log(getSource?.files.length);
     console.log("Notebook sending : ", notebook);
     return c.json(new APIResponse({
-            notebook
+            notebook, resources
     },
     ), 200);
 });

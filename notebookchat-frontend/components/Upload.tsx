@@ -101,7 +101,7 @@ export const Upload = () => {
           console.log(files);
           sendFile(files[0]);
         }}
-        className={`relative border-2 border-dashed rounded-xl h-1/2 flex flex-col
+        className={`relative text-center border-2 border-dashed rounded-xl h-1/2 flex flex-col
     items-center justify-center transition-colors cursor-pointer mt-2
     ${isDragging ? "bg-muted/60 border-primary" : "bg-muted/30 border-border"}
   `}
