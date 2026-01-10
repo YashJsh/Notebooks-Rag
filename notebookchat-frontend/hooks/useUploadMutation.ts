@@ -1,6 +1,6 @@
 import { uploadPDFAPI, uploadTextAPI, uploadWebsiteAPI } from "@/api/upload.api";
 import { api } from "@/lib/api";
-import { useMutation } from "@tanstack/react-query";
+import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 type UploadPayload =
@@ -15,6 +15,7 @@ type UploadVariables =
 }
 
 export const useUploadResource = () => {
+  const client = useQueryClient();
   return useMutation({
     mutationFn: async ({payload, notebookId} : UploadVariables) => {
       switch (payload.type) {
@@ -43,6 +44,9 @@ export const useUploadResource = () => {
     },
 
     onSuccess: (_, variables) => {
+      client.invalidateQueries({
+        queryKey: ["notebook", variables.notebookId],
+      });
       const messageMap = {
         pdf: "PDF uploaded successfully",
         text: "Text uploaded successfully",

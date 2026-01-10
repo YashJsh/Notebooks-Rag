@@ -1,13 +1,12 @@
 "use client"
 
-import { AIAnswerResponse, BackendResponse, chatResponse } from "@/utils/chatResponse"
+import { AIAnswerResponse, BackendResponse, chatResponse } from "@/api/chat.api"
 import { 
     MessageSquare, 
     ArrowUp, 
     BookOpen, 
     Sparkles,
     EllipsisVertical,
-    MoreVertical
 } from "lucide-react";
 
 import { useEffect, useRef, useState } from "react";
@@ -15,8 +14,6 @@ import { toast } from "sonner";
 import { AnswerCard } from "./answer-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { deleteNotebook } from "@/api/notebook.api";
 import { useParams } from "next/navigation";
 
 interface Message {
@@ -106,7 +103,6 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
 
     return (
         <div className="w-full flex flex-col h-full bg-background border-l border-border/50">
-            
             {/* --- Header --- */}
             {/* Outer div handles border/bg, Inner div handles centering */}
             <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">

@@ -55,10 +55,11 @@ export const Upload = () => {
 
   if (isPending) {
     return (
-      <div className="w-1/3 border-r border-border p-6 flex flex-col h-full">
-        <div className="flex-1 flex flex-col items-center justify-center space-y-4 bg-muted/30 rounded-lg">
-          {/* Contextual Text */}
-          <div className="text-center items-center flex flex-col justify-center gap-1">
+      <div className="hidden md:flex w-full h-full border-r border-border p-6
+                      items-center justify-center">
+        <div className="flex flex-col items-center justify-center
+                        space-y-4 bg-muted/30 rounded-lg p-6">
+          <div className="text-center flex flex-col items-center gap-1">
             <p className="font-medium text-foreground">Vectorizing Data</p>
             <p className="text-sm text-muted-foreground">Creating embeddings</p>
             <LoaderIcon className="animate-spin" />
@@ -69,7 +70,7 @@ export const Upload = () => {
   }
 
   return (
-    <div className="w-1/3 border-r border-border p-6 flex flex-col gap-4 h-full">
+    <div className="w-1/3 border-r border-border p-6 flex flex-col gap-4 h-full hidden md:block">
       <div className="flex items-center gap-2 mb-4">
         <MessageSquareText className="text-primary" size={20} />
         <h2 className="text-lg font-bold text-foreground">Upload</h2>
@@ -113,7 +114,7 @@ export const Upload = () => {
           console.log(files);
           sendFile(files[0]);
         }}
-        className={`relative text-center border-2 border-dashed rounded-xl h-1/2 flex flex-col
+        className={`relative text-center border-2 border-dashed rounded-xl h-1/3 flex flex-col
     items-center justify-center transition-colors cursor-pointer mt-2
     ${isDragging ? "bg-muted/60 border-primary" : "bg-muted/30 border-border"}
   `}
