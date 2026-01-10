@@ -1,6 +1,7 @@
 
 import jwt, { verify } from "jsonwebtoken";
 import { z } from "zod";
+import { APIError } from "../utils/apiError";
 
 const AuthPayloadSchema = z.object({
   id: z.string(),
@@ -41,3 +42,12 @@ export const verifyToken = async (
     return null;
   }
 };
+
+export const verifyRefreshToken = async (token : string) : Promise<AuthPayload | null>=>{
+  try{
+    const data = await verify(token, process.env.REFRESH_TOKEN_SECRET!);
+    return data as AuthPayload;
+  }catch(error : any){
+    throw new APIError(401, "Wrong refresh Token", error.message)
+  }
+}

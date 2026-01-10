@@ -3,7 +3,7 @@ import { client } from "../lib/prisma";
 import { SignInSchema, SignUpSchema } from "../schema/auth.schema";
 import { encryptPassword, comparePassword } from "../lib/encryption";
 import { ZodError } from "zod";
-import { createAccessToken, createRefreshToken } from "../lib/tokenManagment";
+import { createAccessToken, createRefreshToken, verifyRefreshToken } from "../lib/tokenManagment";
 import { APIResponse } from "../utils/apiResponse";
 import { APIError } from "../utils/apiError";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
@@ -92,8 +92,6 @@ export const signInController = asyncHandler(async (c: Context) => {
         {
             email: loggedInUser.email,
             id: user.id,
-            refreshToken : loggedInUser.refreshToken,
-            accessToken : accessToken
         },
         "Logged In successfully"
     ), 200)

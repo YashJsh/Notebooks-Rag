@@ -1,43 +1,41 @@
+import { uploadPDFAPI, uploadTextAPI, uploadWebsiteAPI } from "@/api/upload.api";
 import { api } from "@/lib/api";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 type UploadPayload =
   | { type: "pdf"; file: File }
-  | { type: "text"; text: string }
+  | { type: "text"; data: string }
   | { type: "website"; url: string };
+
+type UploadVariables = 
+{
+  payload : UploadPayload,
+  notebookId : string
+}
 
 export const useUploadResource = () => {
   return useMutation({
-    mutationFn: async (payload: UploadPayload) => {
+    mutationFn: async ({payload, notebookId} : UploadVariables) => {
       switch (payload.type) {
         case "pdf": {
           if (payload.file.type !== "application/pdf") {
+            toast("Only PDF files are allowed");
             throw new Error("Only PDF files are allowed");
           }
-
-          const formData = new FormData();
-          formData.append("file", payload.file);
-
-          const res = await api.post("/upload/pdf", formData);
-          return res.data;
-        }
+          await uploadPDFAPI(payload.file, notebookId);
+          break;
+        };
 
         case "text": {
-          const res = await api.post(
-            "/upload/text",
-            { text: payload.text }
-          );
-          return res.data;
-        }
+          await uploadTextAPI(payload.data, notebookId);
+          break;
+        };
 
         case "website": {
-          const res = await api.post(
-            "/upload/website",
-            { url: payload.url }
-          );
-          return res.data;
-        }
+          await uploadWebsiteAPI(payload.url, notebookId);
+          break;
+        };
 
         default:
           throw new Error("Invalid upload type");
@@ -51,7 +49,7 @@ export const useUploadResource = () => {
         website: "Website embedded successfully"
       };
 
-      toast(messageMap[variables.type]);
+      toast(messageMap[variables.payload.type]);
     },
 
     onError: (error: any) => {

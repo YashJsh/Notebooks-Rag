@@ -7,8 +7,10 @@ import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import { useUploadResource } from "@/hooks/useUploadMutation";
+import { useParams } from "next/navigation";
 
 export const Upload = () => {
+  const {id } = useParams();
   const { mutate, isPending, error } = useUploadResource();
   const [data, setData] = useState<string>("");
 
@@ -20,24 +22,34 @@ export const Upload = () => {
       console.warn("Too short data")
       return;
     };
+  
     mutate({
-      type : "text",
-      text : data
+      payload: {
+        type: "text",
+        data,
+      },
+      notebookId: id as string
     });
-    setData("");
   };
 
   const sendFile = async (file : File)=>{
     mutate({
-      type : "pdf",
-      file : file
+      payload: {
+        type: "pdf",
+        file,
+      },
+      notebookId: id as string,
     });
+    
   }
 
   const sendWebsiteLink = async (link : string)=>{
     mutate({
-      type : "website",
-      url : link
+      payload: {
+        type: "website",
+        url: link,
+      },
+      notebookId: id as string,
     });
   }
 

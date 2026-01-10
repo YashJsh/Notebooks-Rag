@@ -5,13 +5,19 @@ import {
     MessageSquare, 
     ArrowUp, 
     BookOpen, 
-    Sparkles 
+    Sparkles,
+    EllipsisVertical,
+    MoreVertical
 } from "lucide-react";
+
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AnswerCard } from "./answer-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { deleteNotebook } from "@/api/notebook.api";
+import { useParams } from "next/navigation";
 
 interface Message {
     role: "user" | "assistant";
@@ -26,6 +32,7 @@ interface ChatProps {
 }
 
 export const Chat = ({ notebookName, totalSources }: ChatProps) => {
+    const {id} = useParams();
 
     const [messages, setMessages] = useState<Message[]>([]);
     const [query, setQuery] = useState("");
@@ -119,6 +126,7 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
                         <BookOpen className="w-3.5 h-3.5" />
                         <span>{totalSources} {totalSources === 1 ? 'Source' : 'Sources'}</span>
+                        <EllipsisVertical size={14} />
                     </div>
                 </div>
             </div>
@@ -133,6 +141,7 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
                             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                                 <Sparkles className="w-6 h-6 text-primary" />
                             </div>
+
                             <div className="space-y-1">
                                 <h3 className="font-semibold text-foreground">Ask anything about {notebookName}</h3>
                                 <p className="text-sm text-muted-foreground max-w-xs mx-auto">

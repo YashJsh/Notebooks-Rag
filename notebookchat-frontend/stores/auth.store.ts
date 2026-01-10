@@ -13,26 +13,18 @@ interface AuthState {
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      isAuthenticated: false,
-
-      setAuth: (user) =>
-        set({
-          user,
-          isAuthenticated: true,
-        }),
-
-      logout: () =>
-        set({
-          user: null,
-          isAuthenticated: false,
-        }),
-    }),
-    {
-      name: "auth-store",
-    }
-  )
-);
+export const useAuthStore = create<AuthState>((set)=>({
+  user : null,
+  isAuthenticated : false,
+  setAuth : (user : User)=>{
+    set({
+      user,
+      isAuthenticated : true
+    })
+  },
+  logout : ()=>{
+    set({
+      isAuthenticated : false
+    })
+  }
+}));
