@@ -1,3 +1,4 @@
+import { api } from "@/lib/api";
 import axios from "axios"
 
 export interface SourceReference {
@@ -23,13 +24,11 @@ export interface BackendResponse{
     }
 }
 
-
 export const chatResponse = async (query : string)=>{
     try {
-        const response = await axios.post("http://localhost:3000/api/chat", JSON.stringify(query));
+        const response = await api.post("/chat", JSON.stringify(query));
         return response.data;
     } catch (error) {
         console.error(error);
     }
-
 };

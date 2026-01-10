@@ -1,18 +1,44 @@
 import type { Context, Next } from "hono"
-import { verifyToken } from "../lib/tokenManagment";
+import { verifyToken, verifyRefreshToken, createAccessToken } from "../lib/tokenManagment";
 import { client } from "../lib/prisma";
 import { APIError } from "../utils/apiError";
-import { getCookie } from "hono/cookie";
+import { getCookie, setCookie } from "hono/cookie";
 
 
 export const authMiddleware = async (c : Context, next : Next)=>{
     try {
-        const token = getCookie(c, "accessToken");
+        let token = getCookie(c, "accessToken");
         
-        // Token from the header
-        if (!token){
-            throw new APIError(403, "Token NOT Found");
-        };
+        // If no access token, try to refresh using refresh token
+        if (!token) {
+            const refreshToken = getCookie(c, "refreshToken");
+            if (!refreshToken) {
+                throw new APIError(401, "No tokens provided");
+            }
+
+            // Verify refresh token and get user
+            const userPayload = await verifyRefreshToken(refreshToken);
+            if (!userPayload) {
+                throw new APIError(401, "Invalid refresh token");
+            }
+
+            const user = await client.user.findUnique({
+                where: {
+                    id: userPayload.id,
+                    email: userPayload.email,
+                    refreshToken: refreshToken
+                }
+            });
+
+            if (!user) {
+                throw new APIError(401, "User not found or refresh token mismatch");
+            }
+
+            c.set("id", user.id);
+            c.set("email", user.email);
+            return await next();
+        }
+        
         // Verifying Token
         const data  = await verifyToken(token);
         if (!data){
@@ -36,7 +62,10 @@ export const authMiddleware = async (c : Context, next : Next)=>{
         c.set("email", user.email);
         return await next();
     } catch (error) {
-        console.warn("error is :",error);
-        throw new APIError(500)
+        console.warn("Auth middleware error:", error);
+        if (error instanceof APIError) {
+            throw error;
+        }
+        throw new APIError(500, "Authentication failed");
     }
 };

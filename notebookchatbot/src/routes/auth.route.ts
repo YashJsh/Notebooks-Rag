@@ -18,4 +18,5 @@ authRoute.post("/signin", signInController);
 
 authRoute.post("/signup", signUpController);
 
+
 export default authRoute;

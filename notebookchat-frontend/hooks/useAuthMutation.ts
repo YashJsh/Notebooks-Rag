@@ -16,8 +16,8 @@ export const useSignUp = ()=>{
             return res.data;
         },
         onSuccess : (data)=>{
-            const { email, id, token } = data.data;
-            setAuth({email, id}, token);
+            const { email, id } = data.data;
+            setAuth({email, id});
             router.push("/signin");
             toast("Signed Up Successfully");
         },
@@ -38,8 +38,8 @@ export const useSignIn = ()=>{
             return res.data;
         },
         onSuccess : (data)=>{
-            const { email, id, token } = data.data;
-            setAuth({email, id}, token);
+            const { email, id  } = data.data;
+            setAuth({email, id});
             router.push("/")
             toast("Signed In Successfully");
         },
