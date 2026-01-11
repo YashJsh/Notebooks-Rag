@@ -72,14 +72,15 @@ export const getNotebook = asyncHandler(async (c : Context)=>{
             files : true
         }
     });
+    console.log("getSource : ",getSource);
     let resources;
-    if (getSource == null){
+    if (getSource == undefined){
         resources = 0;
     }
     else {
-        resources = getSource?.files.length;
+        resources = getSource.files.length;
     }
-    console.log(getSource?.files.length);
+
     console.log("Notebook sending : ", notebook);
     return c.json(new APIResponse({
             notebook, resources

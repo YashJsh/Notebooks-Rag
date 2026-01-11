@@ -119,6 +119,16 @@ export const pdfUpload = asyncHandler(async (c : Context)=>{
     await vec(docs, collection_name);
     await fs.unlink(temp_file);
 
+    await client.sourceFile.create({
+        data: {
+            filename: temp_file,
+            fileType: "pdf",
+            source: "pdf",
+            documentId: doc.id,
+            userId: userId,
+        }
+    });
+
     return c.json(new APIResponse( {
         documentID: doc.id
     }), 201)
@@ -130,6 +140,7 @@ export const webSiteUpload = asyncHandler(async(c : Context) => {
     const body = await c.req.json();
     const website = z.url().parse(body);
     console.log("Website is : ", website);
+
     const response = await client.document.findFirst({
         where: {
             notebookId: id,
@@ -139,6 +150,8 @@ export const webSiteUpload = asyncHandler(async(c : Context) => {
             notebook: true
         }
     });
+    console.log("Document found :", response);
+
     const doc =
         response ??
         (await client.document.create({
@@ -158,6 +171,16 @@ export const webSiteUpload = asyncHandler(async(c : Context) => {
     if (!vector) {
         throw new APIError(500)
     };
+
+    await client.sourceFile.create({
+        data : {
+            filename : "website link",
+            fileType : "website",
+            source: "link",
+            documentId: doc.id,
+            userId: userId,
+        }
+    })
     return c.json(new APIResponse({
         documentID: doc.id
     },

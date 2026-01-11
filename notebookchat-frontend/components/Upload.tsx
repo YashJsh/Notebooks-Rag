@@ -70,7 +70,7 @@ export const Upload = () => {
   }
 
   return (
-    <div className="w-1/3 border-r border-border p-6 flex flex-col gap-4 h-full hidden md:block">
+    <div className="w-full border-r border-border p-6 flex flex-col gap-4 h-full hidden md:block">
       <div className="flex items-center gap-2 mb-4">
         <MessageSquareText className="text-primary" size={20} />
         <h2 className="text-lg font-bold text-foreground">Upload</h2>

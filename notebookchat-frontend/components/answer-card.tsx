@@ -1,4 +1,5 @@
-import { AIAnswerResponse, SourceReference } from "@/utils/chatResponse";
+import { AIAnswerResponse, SourceReference } from "@/api/chat.api";
+
 
 
 export function AnswerCard({ data }: { data: AIAnswerResponse }) {

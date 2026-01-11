@@ -1,5 +1,4 @@
 import { api } from "@/lib/api";
-import axios from "axios"
 
 export interface SourceReference {
     type: "pdf" | "vector";
@@ -15,12 +14,12 @@ export interface AIAnswerResponse {
 }
 
 export interface BackendResponse{
-    success : "true";
-    "data" : {
-        "role" : "assistant",
-        "content" : "string",
-        "id" : string,
-        "meta" : AIAnswerResponse
+    success : boolean;
+    data : {
+        role : "assistant";
+        content : string;
+        id : string;
+        meta : AIAnswerResponse;
     }
 }
 

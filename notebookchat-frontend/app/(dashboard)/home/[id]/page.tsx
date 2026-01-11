@@ -24,25 +24,26 @@ const Notebook = () => {
     };
 
     return (
-      <div className="flex flex-col h-screen overflow-hidden relative">
-        {/* Desktop Layout */}
-        <div className="hidden md:flex flex-1 overflow-hidden">
-          <Upload />
-          <Chat notebookName={data?.notebook?.name!} totalSources={data?.resources!} />
-        </div>
-        
-        {/* Mobile Layout */}
-        <div className="md:hidden flex flex-1 overflow-hidden">
-          <Chat notebookName={data?.notebook?.name!} totalSources={data?.resources!} />
-        </div>
-        
-        
-        <MobileUploadFab 
+      <div className="flex h-screen w-screen overflow-hidden bg-background">
+      {/* Upload (desktop only) */}
+        <aside className="hidden md:flex  flex-shrink-0 border-r border-border">
+        <Upload />
+        </aside>
+    
+        {/* Chat takes remaining space */}
+        <main className="flex-1 min-w-0">
+          <Chat
+            notebookName={data?.notebook?.name!}
+            totalSources={data?.resources!}
+          />
+        </main>
+    
+        {/* Mobile Upload FAB */}
+        <MobileUploadFab
           onClick={() => setIsMobileUploadOpen(true)}
           className="md:hidden"
         />
-        {/* Mobile Upload FAB */}
-       
+    
         {/* Mobile Upload Modal */}
         <MobileUploadModal
           isOpen={isMobileUploadOpen}
@@ -51,6 +52,7 @@ const Notebook = () => {
         />
       </div>
     );
+    
 }
 
 export default Notebook

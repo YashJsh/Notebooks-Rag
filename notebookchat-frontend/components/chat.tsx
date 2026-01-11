@@ -1,10 +1,10 @@
 "use client"
 
-import { AIAnswerResponse, BackendResponse, chatResponse } from "@/api/chat.api"
-import { 
-    MessageSquare, 
-    ArrowUp, 
-    BookOpen, 
+import { BackendResponse } from "@/api/chat.api"
+import {
+    MessageSquare,
+    ArrowUp,
+    BookOpen,
     Sparkles,
     EllipsisVertical,
 } from "lucide-react";
@@ -14,14 +14,9 @@ import { toast } from "sonner";
 import { AnswerCard } from "./answer-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useParams } from "next/navigation";
 
-interface Message {
-    role: "user" | "assistant";
-    content: string;
-    meta?: AIAnswerResponse;
-    id: string;
-}
+import { useChatMutation } from "@/hooks/useChatMutation";
+import { useChatStore } from "@/stores/chat.store";
 
 interface ChatProps {
     notebookName: string;
@@ -29,14 +24,13 @@ interface ChatProps {
 }
 
 export const Chat = ({ notebookName, totalSources }: ChatProps) => {
-    const {id} = useParams();
-
-    const [messages, setMessages] = useState<Message[]>([]);
+    const { messages, addMessage } = useChatStore();
     const [query, setQuery] = useState("");
-    const [loading, setLoading] = useState(false);
-    
+
     const scrollRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const chatMutation = useChatMutation();
 
     const handleInput = () => {
         const textarea = textareaRef.current;
@@ -47,35 +41,25 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
     };
 
     const sendChat = async (query: string) => {
-        setLoading(true);
-        try {
-            const response: BackendResponse = await chatResponse(query);
-            if (!response) {
-                toast.error("No response to show");
-                return;
-            };
-            
-            setMessages(prev => [
-                ...prev,
-                { 
-                    role: response.data.role, 
-                    content: response.data.content, 
-                    meta: response.data.meta, 
-                    id: response.data.id 
-                }
-            ]);
-        } catch (error) {
-            toast.error("Failed to get response");
-        } finally {
-            setLoading(false);
-        }
+        const response: BackendResponse = await chatMutation.mutateAsync(query);
+        if (!response) {
+            toast.error("No response to show");
+            return;
+        };
+
+        addMessage({
+            role: response.data.role,
+            content: response.data.content,
+            meta: response.data.meta,
+            id: response.data.id
+        });
     };
 
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [messages, loading]);
+    }, [messages, chatMutation.isPending]);
 
     const sendMessage = async () => {
         if (totalSources === 0) return;
@@ -83,13 +67,10 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
         if (!text) return;
 
         if (textareaRef.current) textareaRef.current.style.height = "auto";
-        
+
         setQuery("");
 
-        setMessages(prev => [
-            ...prev,
-            { role: "user", content: text, id: crypto.randomUUID() }
-        ]);
+        addMessage({ role: "user", content: text, id: crypto.randomUUID() });
 
         await sendChat(text);
     };
@@ -118,7 +99,7 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
                             </Badge>
                         </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
                         <BookOpen className="w-3.5 h-3.5" />
                         <span>{totalSources} {totalSources === 1 ? 'Source' : 'Sources'}</span>
@@ -131,8 +112,8 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
             <div ref={scrollRef} className="flex-1 overflow-y-auto scroll-smooth">
                 {/* Container for messages */}
                 <div className="max-w-3xl mx-auto w-full p-4 space-y-6">
-                    
-                    {true ? (
+
+                    {messages.length === 0 ? (
                         <div className="flex flex-col justify-center items-center h-[50vh] text-center space-y-4  animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                                 <Sparkles className="w-6 h-6 text-primary" />
@@ -159,7 +140,7 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
                                             : 'bg-muted/50 text-foreground border border-border/50 rounded-2xl rounded-tl-sm'
                                         }
                                     `}
-                                >   
+                                >
                                     {msg.role === "user" ? (
                                         <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                                     ) : (
@@ -173,7 +154,7 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
                     )}
 
                     {/* Loading State */}
-                    {loading && (
+                    {chatMutation.isPending && (
                         <div className="flex justify-start w-full animate-in fade-in duration-300">
                             <div className="bg-muted/50 border border-border/50 px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-1.5">
                                 <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
@@ -206,12 +187,12 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
                             onKeyDown={handleKeyDown}
                             disabled={totalSources === 0}
                         />
-                        
+
                         <div className="absolute right-2 bottom-2">
-                            <Button 
-                                size="icon" 
-                                className="h-8 w-8 rounded-lg transition-all" 
-                                disabled={!query.trim() || loading || totalSources === 0}
+                            <Button
+                                size="icon"
+                                className="h-8 w-8 rounded-lg transition-all"
+                                disabled={!query.trim() || chatMutation.isPending || totalSources === 0}
                                 onClick={sendMessage}
                             >
                                 <ArrowUp className="h-4 w-4" />
