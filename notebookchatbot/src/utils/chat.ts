@@ -28,10 +28,10 @@ const messages : any = [{
     content : llmPrompt
 }];
 
-async function searchVectorStore(query : string){
+async function searchVectorStore(query : string, name : string){
     const vectorStore = await QdrantVectorStore.fromExistingCollection(embeddings, {
         url: process.env.QDRANT_URL,
-        collectionName: "user-rag",
+        collectionName: name,
     }); 
 
     const vectorSearcher = vectorStore.asRetriever({
@@ -47,8 +47,8 @@ async function searchVectorStore(query : string){
     })
 };
 
-export async function chat(query : string){
-    await searchVectorStore(query);
+export async function chat(query : string, name : string){
+    await searchVectorStore(query, name);
     messages.push({
         role : "user",
         content : query
@@ -67,7 +67,6 @@ export async function chat(query : string){
     });
     if (!airesponse) return;
 
-    
     const AIResponse : AIAnswerResponse = JSON.parse(airesponse);
     
     console.log("AI Response" , airesponse);

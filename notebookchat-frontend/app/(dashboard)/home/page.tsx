@@ -44,7 +44,6 @@ export default function Dashboard() {
   const [notebookTitle, setNotebookTitle] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-
   const router = useRouter(); // 2. Initialize Router
 
   const { data, isPending } = useGetNotebooks();
@@ -145,7 +144,7 @@ export default function Dashboard() {
 
               <CardFooter className="p-5 pt-0 flex items-center justify-between text-xs text-muted-foreground border-t border-border/40 mt-auto h-12">
                 <span className="flex items-center gap-1">
-                  1 Source
+                  {notebook.resources} Source
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />

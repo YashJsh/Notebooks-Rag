@@ -10,31 +10,36 @@ export interface Message {
 }
 
 interface ChatState {
-    messages: Message[];
-    addMessage: (message: Message) => void;
-    clearMessages: () => void;
-    setMessages: (messages: Message[]) => void;
+    messages: Record<string, Message[]>; // key = notebookId
+    addMessage: (notebookId: string, message: Message) => void;
+    clearMessages: (notebookId: string) => void;
+    setMessages: (notebookId: string, messages: Message[]) => void;
 }
 
-export const useChatStore = create<ChatState>()(
-    persist(
-        (set) => ({
-            messages: [],
-            addMessage: (message) =>
-                set((state) => ({
-                    messages: [...state.messages, message],
-                })),
-            clearMessages: () =>
-                set(() => ({
-                    messages: [],
-                })),
-            setMessages: (messages) =>
-                set(() => ({
-                    messages,
-                })),
-        }),
-        {
-            name: "chat-storage",
-        }
-    )
-);
+export const useChatStore = create<ChatState>((set) => ({
+    messages: {},
+
+    addMessage: (notebookId, message) =>
+        set((state) => ({
+            messages: {
+                ...state.messages,
+                [notebookId]: [...(state.messages[notebookId] || []), message],
+            },
+        })),
+
+    clearMessages: (notebookId) =>
+        set((state) => ({
+            messages: {
+                ...state.messages,
+                [notebookId]: [],
+            },
+        })),
+
+    setMessages: (notebookId, messages) =>
+        set((state) => ({
+            messages: {
+                ...state.messages,
+                [notebookId]: messages,
+            },
+        })),
+}));

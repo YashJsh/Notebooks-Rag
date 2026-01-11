@@ -13,6 +13,7 @@ export interface Notebook {
     name: string;
     userId: string;
     createdAt: string;
+    resources : number
   }
   
   export interface GetNotebooksApiResponse {

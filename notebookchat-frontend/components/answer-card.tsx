@@ -3,8 +3,6 @@ import { AIAnswerResponse, SourceReference } from "@/api/chat.api";
 
 
 export function AnswerCard({ data }: { data: AIAnswerResponse }) {
-    console.log(data);
-    console.log(data.answer);
     return (
       <div className="flex flex-col gap-3">
   

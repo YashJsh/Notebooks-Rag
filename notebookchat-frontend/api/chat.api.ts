@@ -23,9 +23,9 @@ export interface BackendResponse{
     }
 }
 
-export const chatResponse = async (query : string)=>{
+export const chatResponse = async (query : string, notebookId : string)=>{
     try {
-        const response = await api.post("/chat", JSON.stringify(query));
+        const response = await api.post(`/chat/${notebookId}`, JSON.stringify(query));
         return response.data;
     } catch (error) {
         console.error(error);

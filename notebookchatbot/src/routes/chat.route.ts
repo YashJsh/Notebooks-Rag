@@ -8,6 +8,6 @@ const chatRoute = new Hono();
  * @description Chat with the notebook
  * @access Private
  */
-chatRoute.post("/", chatController);
+chatRoute.post("/:notebookId", chatController);
 
 export default chatRoute;

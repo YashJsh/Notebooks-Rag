@@ -26,7 +26,7 @@ const Notebook = () => {
     return (
       <div className="flex h-screen w-screen overflow-hidden bg-background">
       {/* Upload (desktop only) */}
-        <aside className="hidden md:flex  flex-shrink-0 border-r border-border">
+        <aside className="hidden md:flex max-w-1/4 flex-shrink-0 border-r border-border">
         <Upload />
         </aside>
     
@@ -35,6 +35,7 @@ const Notebook = () => {
           <Chat
             notebookName={data?.notebook?.name!}
             totalSources={data?.resources!}
+            notebookId = {id as string}
           />
         </main>
     

@@ -10,7 +10,7 @@ import { useUploadResource } from "@/hooks/useUploadMutation";
 import { useParams } from "next/navigation";
 
 export const Upload = () => {
-  const {id } = useParams();
+  const { id } = useParams();
   const { mutate, isPending, error } = useUploadResource();
   const [data, setData] = useState<string>("");
 
@@ -22,17 +22,23 @@ export const Upload = () => {
       console.warn("Too short data")
       return;
     };
-  
+
     mutate({
       payload: {
         type: "text",
         data,
       },
       notebookId: id as string
-    });
+    },
+      {
+        onSuccess: () => {
+          setData(""); // ✅ clears textarea
+        },
+
+      });
   };
 
-  const sendFile = async (file : File)=>{
+  const sendFile = async (file: File) => {
     mutate({
       payload: {
         type: "pdf",
@@ -40,10 +46,10 @@ export const Upload = () => {
       },
       notebookId: id as string,
     });
-    
+
   }
 
-  const sendWebsiteLink = async (link : string)=>{
+  const sendWebsiteLink = async (link: string) => {
     mutate({
       payload: {
         type: "website",

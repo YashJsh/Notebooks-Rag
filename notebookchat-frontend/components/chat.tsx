@@ -21,11 +21,15 @@ import { useChatStore } from "@/stores/chat.store";
 interface ChatProps {
     notebookName: string;
     totalSources: number;
+    notebookId : string;
 }
 
-export const Chat = ({ notebookName, totalSources }: ChatProps) => {
+export const Chat = ({ notebookName, totalSources, notebookId }: ChatProps) => {
     const { messages, addMessage } = useChatStore();
+    const notebookMessages = messages[notebookId] || [];
+
     const [query, setQuery] = useState("");
+    const { mutateAsync, isPending } = useChatMutation();
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -41,19 +45,29 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
     };
 
     const sendChat = async (query: string) => {
-        const response: BackendResponse = await chatMutation.mutateAsync(query);
-        if (!response) {
-            toast.error("No response to show");
-            return;
-        };
-
-        addMessage({
-            role: response.data.role,
-            content: response.data.content,
-            meta: response.data.meta,
-            id: response.data.id
-        });
+        try {
+            const response: BackendResponse = await mutateAsync({
+                query,
+                notebookId,
+            });
+    
+            if (!response) {
+                toast.error("No response to show");
+                return;
+            }
+    
+            addMessage(notebookId, {
+                role: response.data.role,
+                content: response.data.content,
+                meta: response.data.meta,
+                id: response.data.id,
+            });
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to send message");
+        }
     };
+    
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -70,7 +84,7 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
 
         setQuery("");
 
-        addMessage({ role: "user", content: text, id: crypto.randomUUID() });
+        addMessage(notebookId, { role: "user", content: text, id: crypto.randomUUID() });
 
         await sendChat(text);
     };
@@ -113,7 +127,7 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
                 {/* Container for messages */}
                 <div className="max-w-3xl mx-auto w-full p-4 space-y-6">
 
-                    {messages.length === 0 ? (
+                    {notebookMessages.length === 0 ? (
                         <div className="flex flex-col justify-center items-center h-[50vh] text-center space-y-4  animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                                 <Sparkles className="w-6 h-6 text-primary" />
@@ -127,7 +141,7 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
                             </div>
                         </div>
                     ) : (
-                        messages.map((msg, index) => (
+                        notebookMessages.map((msg, index) => (
                             <div
                                 key={msg.id || index}
                                 className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -154,7 +168,7 @@ export const Chat = ({ notebookName, totalSources }: ChatProps) => {
                     )}
 
                     {/* Loading State */}
-                    {chatMutation.isPending && (
+                    {isPending && (
                         <div className="flex justify-start w-full animate-in fade-in duration-300">
                             <div className="bg-muted/50 border border-border/50 px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-1.5">
                                 <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.3s]"></div>

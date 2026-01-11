@@ -10,6 +10,7 @@ import { createNotebookType } from "@/types/notebook.types";
 // Fetch all notebooks
 export const fetchNotebooks = async (): Promise<Notebook[]> => {
   const response = await api.get<GetNotebooksApiResponse>("/notebooks");
+  console.log(response.data);
   return response.data.data;
 };
 

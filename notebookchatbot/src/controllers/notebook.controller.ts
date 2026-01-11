@@ -10,13 +10,31 @@ export const getNotebookController = asyncHandler(async (c: Context) => {
     const getNotebooks = await client.notebook.findMany({
         where: {
             userId: id
+        }, 
+        include: {
+            documents : {
+                include : {
+                    files : true
+                }
+            }
         }
     });
     if (!getNotebooks) {
         throw new APIError(404, "No notebook found")
     };
-    console.log("getNotebooks is : ",getNotebooks);
-    return c.json(new APIResponse(getNotebooks), 201)
+
+    const response = getNotebooks.map((notebook)=>{
+        const resources = notebook.documents[0]?.files ? notebook.documents[0]?.files.length : 0;
+        return {
+            id : notebook.id,
+            name : notebook.name,
+            createdAt : notebook.createdAt,
+            userId : notebook.userId,
+            resources : resources
+        }
+    })
+    
+    return c.json(new APIResponse(response), 201)
 });
 
 export const createNotebookController = asyncHandler(async (c: Context) => {
@@ -52,29 +70,29 @@ export const deleteNotebookController = asyncHandler(async (c: Context) => {
         throw new APIError(403, "Error Deleting notebook")
     };
 
-    return c.json(new APIResponse( { notebookId: deleteNotebook.id }, "notebook deleted successsfully"), 201);
+    return c.json(new APIResponse({ notebookId: deleteNotebook.id }, "notebook deleted successsfully"), 201);
 });
 
-export const getNotebook = asyncHandler(async (c : Context)=>{
+export const getNotebook = asyncHandler(async (c: Context) => {
     const userId = await c.get("id");
     const notebookId = await c.req.param('id');
     const notebook = await client.notebook.findUnique({
-            where: {
-                id: notebookId,
-                userId: userId
-            },
+        where: {
+            id: notebookId,
+            userId: userId
+        },
     });
     const getSource = await client.document.findFirst({
-        where : {
-            notebookId : notebookId
+        where: {
+            notebookId: notebookId
         },
-        include : {
-            files : true
+        include: {
+            files: true
         }
     });
-    console.log("getSource : ",getSource);
+    console.log("getSource : ", getSource);
     let resources;
-    if (getSource == undefined){
+    if (getSource == undefined) {
         resources = 0;
     }
     else {
@@ -83,7 +101,7 @@ export const getNotebook = asyncHandler(async (c : Context)=>{
 
     console.log("Notebook sending : ", notebook);
     return c.json(new APIResponse({
-            notebook, resources
+        notebook, resources
     },
     ), 200);
 });

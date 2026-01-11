@@ -6,15 +6,14 @@ import { toast } from "sonner";
 
 export const useChatMutation = () => {
     return useMutation({
-        mutationFn: chatResponse,
-        onSuccess: () => {
-            // Optional: Add success toast if needed
-            // toast("Response received successfully");
+        mutationFn: ({ query, notebookId }: { query: string; notebookId: string }) => {
+            return chatResponse(query, notebookId);
         },
         onError: (error: unknown) => {
-            const errorMessage = error && typeof error === 'object' && 'response' in error 
-                ? ((error as any).response?.data?.message) 
-                : "Failed to get response";
+            const errorMessage =
+                error && typeof error === "object" && "response" in error
+                    ? ((error as any).response?.data?.message)
+                    : "Failed to get response";
             toast.error(errorMessage);
         },
     });
