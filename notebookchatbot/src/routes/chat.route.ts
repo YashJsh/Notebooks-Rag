@@ -4,7 +4,7 @@ import { chatController } from "../controllers/chat.controller";
 const chatRoute = new Hono();
 
 /**
- * @route POST /api/v1/chat
+ * @route POST /api/v1/chat/notebookID
  * @description Chat with the notebook
  * @access Private
  */

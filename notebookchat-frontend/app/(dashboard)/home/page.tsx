@@ -45,10 +45,11 @@ export default function Dashboard() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const router = useRouter(); // 2. Initialize Router
+  const { mutate: deleteNotebook } = useDeleteNotebook();
 
   const { data, isPending } = useGetNotebooks();
   const { mutate: createNotebook, isPending: isCreating } = useCreateNotebook();
-  const { mutate: deleteNotebook } = useDeleteNotebook();
+  
 
   const handleCreate = () => {
     if (!notebookTitle.trim()) return;

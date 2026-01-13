@@ -28,7 +28,7 @@ const messages : any = [{
     content : llmPrompt
 }];
 
-async function searchVectorStore(query : string, name : string){
+export async function searchVectorStore(query : string, name : string){
     const vectorStore = await QdrantVectorStore.fromExistingCollection(embeddings, {
         url: process.env.QDRANT_URL,
         collectionName: name,
@@ -45,6 +45,7 @@ async function searchVectorStore(query : string, name : string){
             Context : ${JSON.stringify(relevantChunks)}
         `
     })
+    return relevantChunks;
 };
 
 export async function chat(query : string, name : string){
@@ -76,4 +77,7 @@ export async function chat(query : string, name : string){
         id : response.id
     }
 };
+
+
+
 

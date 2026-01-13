@@ -17,5 +17,6 @@ const apiRoutes = new Hono();
 apiRoutes.route("/auth", authRoute);
 apiRoutes.route("/", protectedRoutes);
 
+
 export default apiRoutes;
 

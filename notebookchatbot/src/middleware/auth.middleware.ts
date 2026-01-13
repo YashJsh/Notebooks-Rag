@@ -2,7 +2,7 @@ import type { Context, Next } from "hono"
 import { verifyToken, verifyRefreshToken, createAccessToken } from "../lib/tokenManagment";
 import { client } from "../lib/prisma";
 import { APIError } from "../utils/apiError";
-import { getCookie, setCookie } from "hono/cookie";
+import { getCookie } from "hono/cookie";
 
 
 export const authMiddleware = async (c : Context, next : Next)=>{

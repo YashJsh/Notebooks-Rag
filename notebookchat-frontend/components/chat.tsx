@@ -15,86 +15,62 @@ import { AnswerCard } from "./answer-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-import { useChatMutation } from "@/hooks/useChatMutation";
 import { useChatStore } from "@/stores/chat.store";
+import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport, UIMessage } from 'ai';
 
 interface ChatProps {
     notebookName: string;
     totalSources: number;
-    notebookId : string;
+    notebookId: string;
 }
 
-export const Chat = ({ notebookName, totalSources, notebookId }: ChatProps) => {
-    const { messages, addMessage } = useChatStore();
-    const notebookMessages = messages[notebookId] || [];
+const apiurl = process.env.NEXT_PUBLIC_API_URL;
 
-    const [query, setQuery] = useState("");
-    const { mutateAsync, isPending } = useChatMutation();
+export const Chat = ({ notebookName, totalSources, notebookId }: ChatProps) => {
+    //const { messages, addMessage } = useChatStore();
+    //const notebookMessages = messages[notebookId] || [];
+
+    const [query, setQuery] = useState<string>('')
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    const chatMutation = useChatMutation();
+    const { messages, status, sendMessage } = useChat({
+        transport: new DefaultChatTransport({
+            api: `${apiurl}/chat/${notebookId}`,
+            credentials : 'include'
+        })
+    });
+
+    console.log("Messages : ", messages);
 
     const handleInput = () => {
-        const textarea = textareaRef.current;
-        if (textarea) {
-            textarea.style.height = "auto";
-            textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
-        }
-    };
+        const textarea = textareaRef.current
+        if (!textarea) return
 
-    const sendChat = async (query: string) => {
-        try {
-            const response: BackendResponse = await mutateAsync({
-                query,
-                notebookId,
-            });
-    
-            if (!response) {
-                toast.error("No response to show");
-                return;
-            }
-    
-            addMessage(notebookId, {
-                role: response.data.role,
-                content: response.data.content,
-                meta: response.data.meta,
-                id: response.data.id,
-            });
-        } catch (err) {
-            console.error(err);
-            toast.error("Failed to send message");
-        }
-    };
-    
+        textarea.style.height = 'auto'
+        textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`
+    }
 
     useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-    }, [messages, chatMutation.isPending]);
-
-    const sendMessage = async () => {
-        if (totalSources === 0) return;
-        const text = query.trim();
-        if (!text) return;
-
-        if (textareaRef.current) textareaRef.current.style.height = "auto";
-
-        setQuery("");
-
-        addMessage(notebookId, { role: "user", content: text, id: crypto.randomUUID() });
-
-        await sendChat(text);
-    };
+        if (!scrollRef.current) return
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }, [messages, status]) // status included for streaming updates
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            if (!query.trim() || status === 'streaming') return
+
+
+            sendMessage({
+                role: 'user',
+                parts: [{ type: 'text', text: query }],
+            })
+            setQuery("")
         }
-    };
+    }
 
     return (
         <div className="w-full flex flex-col h-full bg-background border-l border-border/50">
@@ -124,59 +100,71 @@ export const Chat = ({ notebookName, totalSources, notebookId }: ChatProps) => {
 
             {/* --- Chat Area --- */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto scroll-smooth">
-                {/* Container for messages */}
                 <div className="max-w-3xl mx-auto w-full p-4 space-y-6">
 
-                    {notebookMessages.length === 0 ? (
-                        <div className="flex flex-col justify-center items-center h-[50vh] text-center space-y-4  animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    {messages.length === 0 ? (
+                        /* Empty State */
+                        <div className="flex flex-col justify-center items-center h-[50vh] text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                                 <Sparkles className="w-6 h-6 text-primary" />
                             </div>
 
                             <div className="space-y-1">
-                                <h3 className="font-semibold text-foreground">Ask anything about {notebookName}</h3>
+                                <h3 className="font-semibold text-foreground">
+                                    Ask anything about {notebookName}
+                                </h3>
                                 <p className="text-sm text-muted-foreground max-w-xs mx-auto">
                                     I can help you analyze your notes, summarize key points, or find specific details.
                                 </p>
                             </div>
                         </div>
                     ) : (
-                        notebookMessages.map((msg, index) => (
+                        messages.map(message => (
                             <div
-                                key={msg.id || index}
-                                className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                key={message.id}
+                                className={`flex w-full ${message.role === 'user' ? 'justify-end' : 'justify-start'
+                                    }`}
                             >
                                 <div
                                     className={`
-                                        max-w-[85%] sm:max-w-[75%] px-5 py-3 text-sm shadow-sm
-                                        ${msg.role === 'user'
+              max-w-[85%] sm:max-w-[75%] px-5 py-3 text-sm shadow-sm
+              ${message.role === 'user'
                                             ? 'bg-primary text-primary-foreground rounded-2xl rounded-tr-sm'
                                             : 'bg-muted/50 text-foreground border border-border/50 rounded-2xl rounded-tl-sm'
                                         }
-                                    `}
+            `}
                                 >
-                                    {msg.role === "user" ? (
-                                        <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            {msg.meta && <AnswerCard data={msg.meta} />}
-                                        </div>
-                                    )}
+                                    {/* Render message parts (AI SDK v5) */}
+                                    {message.parts.map((part, i) => {
+                                        if (part.type === 'text') {
+                                            return (
+                                                <p
+                                                    key={i}
+                                                    className="leading-relaxed whitespace-pre-wrap"
+                                                >
+                                                    {part.text}
+                                                </p>
+                                            )
+                                        }
+
+                                        return null
+                                    })}
                                 </div>
                             </div>
                         ))
                     )}
 
-                    {/* Loading State */}
-                    {isPending && (
+                    {/* Streaming indicator */}
+                    {status === 'streaming' && (
                         <div className="flex justify-start w-full animate-in fade-in duration-300">
                             <div className="bg-muted/50 border border-border/50 px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-1.5">
-                                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce"></div>
+                                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                                <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" />
                             </div>
                         </div>
                     )}
+
                 </div>
             </div>
 
@@ -188,37 +176,54 @@ export const Chat = ({ notebookName, totalSources, notebookId }: ChatProps) => {
                             ref={textareaRef}
                             rows={1}
                             value={query}
-                            placeholder={totalSources === 0 ? "Add sources to start chatting" : "Ask a question..."}
+                            placeholder={
+                                totalSources === 0
+                                    ? 'Add sources to start chatting'
+                                    : 'Ask a question...'
+                            }
                             className="
-                                w-full resize-none bg-transparent 
-                                px-4 py-3 pr-12 
-                                text-sm placeholder:text-muted-foreground 
-                                focus:outline-none max-h-[160px] overflow-y-auto
-                                scrollbar-hide
-                            "
+          w-full resize-none bg-transparent 
+          px-4 py-3 pr-12 
+          text-sm placeholder:text-muted-foreground 
+          focus:outline-none max-h-[160px] overflow-y-auto
+          scrollbar-hide
+        "
                             onInput={handleInput}
-                            onChange={(e) => setQuery(e.target.value)}
+                            onChange={e => setQuery(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            disabled={totalSources === 0}
+                            disabled={totalSources === 0 || status === 'streaming'}
                         />
 
                         <div className="absolute right-2 bottom-2">
                             <Button
                                 size="icon"
                                 className="h-8 w-8 rounded-lg transition-all"
-                                disabled={!query.trim() || chatMutation.isPending || totalSources === 0}
-                                onClick={sendMessage}
+                                disabled={
+                                    !query.trim() ||
+                                    status === 'streaming' ||
+                                    totalSources === 0
+                                }
+                                onClick={() => {
+
+                                    sendMessage({
+                                        role: 'user',
+                                        parts: [{ type: 'text', text: query }],
+                                    })
+                                    setQuery('')
+                                }}
                             >
                                 <ArrowUp className="h-4 w-4" />
                                 <span className="sr-only">Send</span>
                             </Button>
                         </div>
                     </div>
+
                     <div className="text-[10px] text-muted-foreground text-center mt-2">
                         AI can make mistakes. Check important info.
                     </div>
                 </div>
             </div>
+
         </div>
     )
 }
