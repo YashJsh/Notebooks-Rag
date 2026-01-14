@@ -11,35 +11,54 @@ import {
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AnswerCard } from "./answer-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
-import { useChatStore } from "@/stores/chat.store";
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, UIMessage } from 'ai';
+import  Markdown from "react-markdown"
 
 interface ChatProps {
     notebookName: string;
     totalSources: number;
     notebookId: string;
-}
+};
 
 const apiurl = process.env.NEXT_PUBLIC_API_URL;
+
+/*
+Message type
+message = {
+  role: "user",
+  parts: [
+    { type: "text", text: "Hello" }
+  ]
+}
+*/
 
 export const Chat = ({ notebookName, totalSources, notebookId }: ChatProps) => {
     //const { messages, addMessage } = useChatStore();
     //const notebookMessages = messages[notebookId] || [];
-
     const [query, setQuery] = useState<string>('')
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    const { messages, status, sendMessage } = useChat({
+    const { messages,  status, sendMessage} = useChat({
         transport: new DefaultChatTransport({
             api: `${apiurl}/chat/${notebookId}`,
-            credentials : 'include'
+            credentials : 'include',
+            prepareSendMessagesRequest({messages}){
+                const last = messages[messages.length - 1];
+                const textPart = last.parts.find(
+                    (part) => part.type === "text"
+                )
+                return {
+                    body: {
+                      input: textPart?.text,
+                      conversationId: notebookId,
+                    },
+                };
+            }
         })
     });
 
@@ -51,7 +70,7 @@ export const Chat = ({ notebookName, totalSources, notebookId }: ChatProps) => {
 
         textarea.style.height = 'auto'
         textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`
-    }
+    };
 
     useEffect(() => {
         if (!scrollRef.current) return
@@ -65,9 +84,9 @@ export const Chat = ({ notebookName, totalSources, notebookId }: ChatProps) => {
 
 
             sendMessage({
-                role: 'user',
-                parts: [{ type: 'text', text: query }],
-            })
+                role: "user",
+                parts: [{ type: "text", text: query }],
+            });
             setQuery("")
         }
     }
@@ -142,7 +161,7 @@ export const Chat = ({ notebookName, totalSources, notebookId }: ChatProps) => {
                                                     key={i}
                                                     className="leading-relaxed whitespace-pre-wrap"
                                                 >
-                                                    {part.text}
+                                                    <Markdown>{part.text}</Markdown>
                                                 </p>
                                             )
                                         }

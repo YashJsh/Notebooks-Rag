@@ -7,68 +7,74 @@ import { asyncHandler } from "../utils/asyncHandler";
 // import { client } from "../lib/prisma";
 import { APIError } from "../utils/apiError";
 import { openai } from "@ai-sdk/openai";
-import { streamText, convertToModelMessages, type ModelMessage } from "ai";
+import { streamText, convertToModelMessages, type ModelMessage, type UIMessage } from "ai";
 import { llmPrompt } from "../constants";
+import { client } from "../lib/prisma";
 
 export const chatMemory = new Map<string, ModelMessage[]>()
 
 export const chatController = async (c: Context) => {
   try {
     console.log("Chat controller initiated");
+    const notebookId = c.req.param("notebookId");
+    console.log("ID is : ", notebookId);
+    const notebook = await client.notebook.findUnique({
+      where : {
+        id : notebookId
+      }
+    });
+    console.log("Notebook from db is : ", notebook!);
+
+    if (!notebook){
+      throw new APIError(404, "Notebook not found");
+    }
     
     const body = await c.req.json();
-    const { messages } = body;
+    const { input, conversationId } = body;
+
+    if (!chatMemory.has(conversationId)) {
+      chatMemory.set(conversationId, [{ role: "system", content: llmPrompt }]);
+    };
     
-    console.log("Messages received:", messages);
-    if (!messages || !Array.isArray(messages)) {
-      return c.json({ error: 'Invalid messages payload' }, 400);
+    const memory = chatMemory.get(conversationId);
+    if (!memory){
+      throw new APIError(404, "Memory not found");
+    }
+    let query = await EnhanceQuery(input);
+    if (!query) {
+      throw new Error("Query cannot be empty");
     }
 
-    const chatId = c.req.param("notebookId");
-    if (!chatMemory.has(chatId)) {
-      chatMemory.set(chatId, [
-        { role: "system", content: llmPrompt }
-      ])
-    }
-
-    const memory = chatMemory.get(chatId)!
-
-    const lastUser = messages[messages.length - 1];
-    const userText = lastUser.parts
-    .filter((p: any) => p.type === "text")
-    .map((p: any) => p.text)
-    .join("")
-
-    const relevantChunks = await searchVectorStore(userText, chatId);
+    const relevantChunks = await searchVectorStore(query as string, notebook.name);
+    console.log("relevant chunks are : ",relevantChunks);
 
     const ragMessage: ModelMessage = {
       role: "system",
-      content: `Context:\n${JSON.stringify(relevantChunks)}`,
+      content: `Context:\n${relevantChunks}`,
     };
 
-    const promptMessages :  ModelMessage[]= [
+    const promptMessages: ModelMessage[] = [
       ...memory,
       ragMessage,
-      { role: "user", content: userText }
-    ]
+      { role: "user", content: query }
+    ];
+
+    console.log(promptMessages);
+    console.log("\n");
 
     console.log("Starting streaming response...");
+
     const result = await streamText({
       model: openai("gpt-4o-mini"),
       messages: promptMessages,
-      
-    onFinish: ({ text }) => {
-      // Persist memory in RAM
-      memory.push({ role: "user", content: userText })
-      memory.push({ role: "assistant", content: text })
-    },
-      onError: (error) => {
-        console.error('StreamText error:', error);
-      }
+      onFinish: ({ text }) => {
+        memory.push({ role: "assistant", content: text });
+      },
+      onError: (error) => console.error('StreamText error:', error),
     });
+
     console.log("Streaming response initiated");
     return result.toUIMessageStreamResponse({
-      
       onError: (error) => {
         console.error('UI Message Stream error:', error);
         return 'Streaming error occurred';

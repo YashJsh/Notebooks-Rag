@@ -29,6 +29,8 @@ const messages : any = [{
 }];
 
 export async function searchVectorStore(query : string, name : string){
+    console.log("query is :", query);
+    console.log("Searching in databse : ", name);
     const vectorStore = await QdrantVectorStore.fromExistingCollection(embeddings, {
         url: process.env.QDRANT_URL,
         collectionName: name,
@@ -39,13 +41,9 @@ export async function searchVectorStore(query : string, name : string){
     });
 
     const relevantChunks = await vectorSearcher.invoke(query);
-    messages.push({
-        role : "system",
-        content : `
-            Context : ${JSON.stringify(relevantChunks)}
-        `
-    })
-    return relevantChunks;
+    const chunks = JSON.stringify(relevantChunks);
+    console.log(chunks);
+    return chunks;
 };
 
 export async function chat(query : string, name : string){
