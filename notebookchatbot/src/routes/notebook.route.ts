@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createNotebookController, deleteNotebookController, getNotebook, getNotebookController } from "../controllers/notebook.controller";
+import { createNotebookController, deleteNotebookController, getNotebook, getNotebookController, getSource } from "../controllers/notebook.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 
 const notebookRoute = new Hono();
@@ -31,5 +31,12 @@ notebookRoute.get("/:id",getNotebook);
  * @access Private
  */
 notebookRoute.delete("/:id", deleteNotebookController);
+
+/**
+ * @route GET /api/v1/notebooks/:id/sources
+ * @description Give Source of the notebook.
+ * @access Private
+ */
+notebookRoute.get("/:id/sources", getSource);
 
 export default notebookRoute;

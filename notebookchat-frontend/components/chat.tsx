@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, UIMessage } from 'ai';
-import  Markdown from "react-markdown"
+import Markdown from "react-markdown"
+import SourceViewer from "./source";
 
 interface ChatProps {
     notebookName: string;
@@ -38,31 +39,30 @@ message = {
 export const Chat = ({ notebookName, totalSources, notebookId }: ChatProps) => {
     //const { messages, addMessage } = useChatStore();
     //const notebookMessages = messages[notebookId] || [];
-    const [query, setQuery] = useState<string>('')
+    const [query, setQuery] = useState<string>('');
+    const [showSources, setShowSources] = useState(false);
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    const { messages,  status, sendMessage} = useChat({
+    const { messages, status, sendMessage } = useChat({
         transport: new DefaultChatTransport({
             api: `${apiurl}/chat/${notebookId}`,
-            credentials : 'include',
-            prepareSendMessagesRequest({messages}){
+            credentials: 'include',
+            prepareSendMessagesRequest({ messages }) {
                 const last = messages[messages.length - 1];
                 const textPart = last.parts.find(
                     (part) => part.type === "text"
                 )
                 return {
                     body: {
-                      input: textPart?.text,
-                      conversationId: notebookId,
+                        input: textPart?.text,
+                        conversationId: notebookId,
                     },
                 };
             }
         })
     });
-
-    console.log("Messages : ", messages);
 
     const handleInput = () => {
         const textarea = textareaRef.current
@@ -109,11 +109,13 @@ export const Chat = ({ notebookName, totalSources, notebookId }: ChatProps) => {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
+                    <button
+                        onClick={() => setShowSources(true)}
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md hover:bg-muted transition"
+                    >
                         <BookOpen className="w-3.5 h-3.5" />
                         <span>{totalSources} {totalSources === 1 ? 'Source' : 'Sources'}</span>
-                        <EllipsisVertical size={14} />
-                    </div>
+                    </button>
                 </div>
             </div>
 
@@ -174,7 +176,7 @@ export const Chat = ({ notebookName, totalSources, notebookId }: ChatProps) => {
                     )}
 
                     {/* Streaming indicator */}
-                    {status === 'streaming' && (
+                    {(status === 'submitted') && (
                         <div className="flex justify-start w-full animate-in fade-in duration-300">
                             <div className="bg-muted/50 border border-border/50 px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-1.5">
                                 <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.3s]" />
@@ -242,6 +244,19 @@ export const Chat = ({ notebookName, totalSources, notebookId }: ChatProps) => {
                     </div>
                 </div>
             </div>
+            {/* Sources Modal */}
+            {showSources && (
+                <div className="fixed border-4 inset-0 z-50 flex items-center justify-center bg-black/40">
+                    <div className="rounded-xl w-[90%] max-w-3xl max-h-[80vh] overflow-y-auto p-6">
+
+
+                        {/* Content */}
+                        {/* Render your SourceViewer here */}
+                        <SourceViewer id={notebookId} setShowSources={setShowSources} />
+
+                    </div>
+                </div>
+            )}
 
         </div>
     )

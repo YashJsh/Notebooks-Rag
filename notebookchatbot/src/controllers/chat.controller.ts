@@ -15,15 +15,14 @@ export const chatMemory = new Map<string, ModelMessage[]>()
 
 export const chatController = async (c: Context) => {
   try {
-    console.log("Chat controller initiated");
     const notebookId = c.req.param("notebookId");
-    console.log("ID is : ", notebookId);
+
     const notebook = await client.notebook.findUnique({
       where : {
         id : notebookId
       }
     });
-    console.log("Notebook from db is : ", notebook!);
+
 
     if (!notebook){
       throw new APIError(404, "Notebook not found");
@@ -48,15 +47,22 @@ export const chatController = async (c: Context) => {
     const relevantChunks = await searchVectorStore(query as string, notebook.name);
     console.log("relevant chunks are : ",relevantChunks);
 
+    const formattedChunks = relevantChunks
+      .map((chunk, i) => 
+        `[Chunk ${i + 1}]
+      ${chunk.pageContent}`
+      )
+      .join("\n\n");
+
     const ragMessage: ModelMessage = {
       role: "system",
-      content: `Context:\n${relevantChunks}`,
+      content: `Context:\n${JSON.stringify(formattedChunks)}`,
     };
 
     const promptMessages: ModelMessage[] = [
       ...memory,
       ragMessage,
-      { role: "user", content: query }
+      { role: "user", content: input }
     ];
 
     console.log(promptMessages);
@@ -67,12 +73,9 @@ export const chatController = async (c: Context) => {
     const result = await streamText({
       model: openai("gpt-4o-mini"),
       messages: promptMessages,
-      onFinish: ({ text }) => {
-        memory.push({ role: "assistant", content: text });
-      },
       onError: (error) => console.error('StreamText error:', error),
     });
-
+    
     console.log("Streaming response initiated");
     return result.toUIMessageStreamResponse({
       onError: (error) => {

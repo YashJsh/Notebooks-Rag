@@ -124,9 +124,9 @@ export default function Dashboard() {
                     </DropdownMenuTrigger>
                     {/* Stop Propagation on content just to be safe */}
                     <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuItem onClick={() => console.log("Rename clicked")}>
+                      {/* <DropdownMenuItem onClick={() => console.log("Rename clicked")}>
                         Rename
-                      </DropdownMenuItem>
+                      </DropdownMenuItem> */}
                       <DropdownMenuItem onClick={() => deleteNotebook(notebook.id)} className="text-destructive focus:text-destructive">
                         Delete
                       </DropdownMenuItem>

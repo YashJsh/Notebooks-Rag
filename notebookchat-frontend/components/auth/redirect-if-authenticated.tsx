@@ -1,23 +1,21 @@
 "use client";
-import { useAuthStore } from "@/stores/auth.store";
+
+
+import { useMe } from "@/hooks/useAuthMutation";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useHasMounted } from "@/hooks/useHasMounted";
 
 const RedirectIfAuthenticated = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuthStore();
+  const { data: user, isLoading } = useMe();
   const router = useRouter();
-  const hasMounted = useHasMounted();
 
   useEffect(() => {
-    if (hasMounted && isAuthenticated) {
+    if (!isLoading && user) {
       router.push("/home");
     }
-  }, [isAuthenticated, router, hasMounted]);
+  }, [user, isLoading, router]);
 
-  if (!hasMounted || isAuthenticated) {
-    return null;
-  }
+  if (isLoading || user) return null;
 
   return <>{children}</>;
 };
