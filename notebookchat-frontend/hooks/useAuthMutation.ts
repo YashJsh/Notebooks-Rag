@@ -2,7 +2,7 @@
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth.store";
 import { signInType, SignUpSchemaType } from "@/types/auth.types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -50,3 +50,15 @@ export const useSignIn = ()=>{
         },
     })
 };
+
+export const useMe = ()=>{
+    return useQuery({
+        queryKey : ["me"],
+        queryFn : async ()=>{
+            const res = await api.get("/auth/me", {
+                withCredentials : true
+            });
+            return res.data.data;
+        },
+    })
+}

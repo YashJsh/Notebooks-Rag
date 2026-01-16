@@ -105,3 +105,48 @@ export const getNotebook = asyncHandler(async (c: Context) => {
     },
     ), 200);
 });
+
+export const getSource = asyncHandler(async(c : Context)=>{
+    const notebookId = await c.req.param("id");
+    const source = await client.document.findFirst({
+        where : {
+            notebookId : notebookId
+        },
+        include : {
+            files : true
+        }
+    });
+    console.log("Source found : ", source?.files);
+
+    if (!source){
+        throw new APIError(404, "Source not found");
+    };
+
+    return c.json(new APIResponse(source.files, "Source fetched successfully"), 200);
+});
+
+export const renameNotebook = asyncHandler(async(c : Context)=>{
+    const notebookId = await c.req.param("id");
+    const body = await c.req.json();
+    const parsedBody = notebookSchema.parse(body);
+    
+    const updatedNotebook = await client.notebook.update({
+        where : {
+            id : notebookId
+        },
+        data : {
+            name : parsedBody.name
+        }
+    });
+    if (!updatedNotebook){
+        throw new APIError(403, "Error updating notebook");
+    };
+    
+    return c.json(new APIResponse(
+        {
+            notebookId : updatedNotebook.id,
+            name : updatedNotebook.name
+        },
+        "Notebook renamed successfully"
+    ), 200);
+});

@@ -41,9 +41,8 @@ export async function searchVectorStore(query : string, name : string){
     });
 
     const relevantChunks = await vectorSearcher.invoke(query);
-    const chunks = JSON.stringify(relevantChunks);
-    console.log(chunks);
-    return chunks;
+
+    return relevantChunks;
 };
 
 export async function chat(query : string, name : string){

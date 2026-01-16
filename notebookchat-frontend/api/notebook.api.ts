@@ -4,6 +4,7 @@ import {
   Notebook,
   GetNotebooksApiResponse,
   GetNotebookApiResponse,
+  souceDocument,
 } from "@/types/notebook.types";
 import { createNotebookType } from "@/types/notebook.types";
 
@@ -35,4 +36,10 @@ export const createNotebook = async (data: createNotebookType) => {
 export const deleteNotebook = async (id: string) => {
   const response = await api.delete(`/notebooks/${id}`);
   return response.data;
+};
+
+//Get Sources of notebook
+export const fetchNotebookSources = async (id: string) => {
+  const response = await api.get<souceDocument>(`/notebooks/${id}/sources`);
+  return response.data.data;
 };
